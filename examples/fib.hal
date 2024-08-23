@@ -1,0 +1,30 @@
+---
+globals: 0
+global_pointers: 0
+functions: 2
+    main :0
+    fib :1
+---
+:0 { args: 0, ptr_args: 0, locals: 0, local_pointers: 0, instructions: 3 } {
+    PushI64 30;
+    Call :1, 1;
+    PrintTopStackI64;
+}
+:1 { args: 1, ptr_args: 0, locals: 0, local_pointers: 0, instructions: 15 } {
+    LoadArgI64 $0;
+    PushI64 2;
+    LessThanI64;
+    JumpIfFalse #6;
+    LoadArgI64 $0;
+    ReturnI64;
+    LoadArgI64 $0;
+    PushI64 1;
+    SubI64;
+    Call :1;
+    LoadArgI64 $0;
+    PushI64 d2;
+    SubI64;
+    Call :1;
+    AddI64;
+    ReturnI64;
+}
