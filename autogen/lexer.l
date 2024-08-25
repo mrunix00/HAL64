@@ -52,6 +52,12 @@ Token read_token(void) {
     Token token;
     TokenType token_type = yylex();
     token.type = token_type == 0 ? TOKEN_EOF : token_type;
-    token.value = strdup(yytext);
+    if (strlen(yytext) >= 64) {
+        fprintf(stderr, "Token too long: %s\n", yytext);
+        token.type = TOKEN_EOF;
+        token.value[0] = '\0';
+        return token;
+    }
+    strcpy(token.value, yytext);
     return token;
 }

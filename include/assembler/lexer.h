@@ -36,7 +36,7 @@ typedef enum {
 
 typedef struct {
     TokenType type;
-    char *value;
+    char value[64];
 } Token;
 
 void init_lexer(const char *source);
