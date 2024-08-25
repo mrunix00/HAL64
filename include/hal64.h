@@ -20,7 +20,7 @@ typedef struct {
 } Instruction;
 
 typedef struct {
-    char *name;
+    char name[64];
     Instruction *instructions;
     size_t id;
     size_t args_count;

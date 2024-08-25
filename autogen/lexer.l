@@ -34,7 +34,6 @@
 "SubI64"                { return TOKEN_SubI64; }
 "Call"                  { return TOKEN_Call; }
 "PrintTopStackI64"      { return TOKEN_PrintTopStackI64; }
-[a-z_A-Z]+[a-z_A-Z0-9]* { return TOKEN_IDENTIFIER; }
 
 %%
 
