@@ -13,6 +13,6 @@ find_package(FLEX REQUIRED)
 
 flex_target(lexer autogen/lexer.l "${LEXER_OUT}" DEFINES_FILE ${LEXER_DIR}/lexer.h)
 
-file(GLOB_RECURSE  "src/*.c")
+file(GLOB_RECURSE SOURCE "src/*.c")
 
-add_executable(HAL64 main.c src/utils/memory.c ${LEXER_OUT})
+add_executable(HAL64 main.c ${SOURCE} ${LEXER_OUT})
