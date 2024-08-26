@@ -11,7 +11,7 @@ include_directories(${CMAKE_CURRENT_BINARY_DIR})
 
 find_package(FLEX REQUIRED)
 
-flex_target(lexer autogen/lexer.l "${LEXER_OUT}" DEFINES_FILE ${LEXER_DIR}/lexer.h)
+flex_target(lexer src/lexer.l "${LEXER_OUT}" DEFINES_FILE ${LEXER_DIR}/lexer.h)
 
 file(GLOB_RECURSE SOURCE "src/*.c")
 
