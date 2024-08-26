@@ -42,7 +42,23 @@ typedef struct
 	Function *functions;
 } Program;
 
+typedef struct
+{
+	uint64_t *stack;
+	size_t stack_size;
+	size_t stack_pointer;
+} OperandsStack;
+
+typedef struct
+{
+	OperandsStack stack;
+} VM;
+
 void free_program(Program program);
 void print_program(Program program);
 
 void instruction_as_string(Instruction instruction, char *s, size_t max_length);
+
+VM init_vm(void);
+void free_vm(VM vm);
+void execute_program(Program program);

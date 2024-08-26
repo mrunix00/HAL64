@@ -26,7 +26,7 @@ read_file(const char *path)
 int
 main(void)
 {
-	char *source = read_file("fib.hal");
+	char *source = read_file("add_numbers.hal");
 	Program program;
 	if (source == NULL) {
 		fprintf(stderr, "Failed to read file\n");
@@ -35,7 +35,7 @@ main(void)
 
 	init_lexer(source);
 	program = assemble(source);
-	print_program(program);
+	execute_program(program);
 	free_lexer();
 	free_program(program);
 
