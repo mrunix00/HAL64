@@ -3,9 +3,10 @@ globals: 0
 global_pointers: 0
 functions: 1
 ---
-:0 { args: 0 ptr_args: 0 locals: 0 local_pointers: 0 instructions: 4 } {
+:0 { args: 0 ptr_args: 0 locals: 0 local_pointers: 0 instructions: 5 } {
     PushI64 30;
     PushI64 12;
     AddI64;
     PrintTopStackI64;
+    Exit;
 }

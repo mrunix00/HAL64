@@ -15,6 +15,7 @@ typedef enum
 	OP_SUB_I64,
 	OP_CALL,
 	OP_PRINT_TOP_STACK_I64,
+	OP_EXIT,
 } InstructionOp;
 
 typedef struct

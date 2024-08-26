@@ -23,6 +23,7 @@ typedef enum
 	TOKEN_SubI64,
 	TOKEN_Call,
 	TOKEN_PrintTopStackI64,
+	TOKEN_Exit,
 	TOKEN_IDENTIFIER,
 	TOKEN_NUMBER,
 	TOKEN_COLON,

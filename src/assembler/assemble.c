@@ -197,6 +197,9 @@ read_instruction()
 	case TOKEN_PrintTopStackI64:
 		instruction.op = OP_PRINT_TOP_STACK_I64;
 		break;
+	case TOKEN_Exit:
+		instruction.op = OP_EXIT;
+		break;
 	default:
 		fprintf(stderr, "Invalid instruction: %s\n", token.value);
 		exit(EXIT_FAILURE);

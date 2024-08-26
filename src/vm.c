@@ -57,11 +57,11 @@ void
 execute_program(Program program)
 {
 	VM vm = init_vm();
-	size_t i;
-	for (i = 0; i < program.functions[0].instructions_count; i++) {
-		switch (program.functions[0].instructions[i].op) {
+	size_t instr_index, func_index = 0;
+	for (instr_index = 0;; instr_index++) {
+		switch (program.functions[func_index].instructions[instr_index].op) {
 		case OP_PUSH_I64:
-			push_stack(&vm, program.functions[0].instructions[i].data);
+			push_stack(&vm, program.functions[func_index].instructions[instr_index].data);
 			break;
 		case OP_ADD_I64:
 			push_stack(&vm, pop_stack(&vm) + pop_stack(&vm));
@@ -72,10 +72,13 @@ execute_program(Program program)
 		case OP_PRINT_TOP_STACK_I64:
 			printf("%zu\n", top_stack(&vm));
 			break;
+		case OP_EXIT:
+			goto end;
 		default:
 			fprintf(stderr, "Unknown instruction\n");
 			exit(EXIT_FAILURE);
 		}
 	}
+end:
 	free_vm(vm);
 }
