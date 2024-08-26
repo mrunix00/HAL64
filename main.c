@@ -35,7 +35,9 @@ main(void)
 
 	init_lexer(source);
 	program = assemble(source);
+	print_program(program);
 	free_lexer();
+	free_program(program);
 
 	free(source);
 	return 0;
