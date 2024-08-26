@@ -3,15 +3,16 @@
 #include <string.h>
 #include "assembler/assembler.h"
 #include "assembler/lexer.h"
+#include "utils/memory.h"
 
-#define READ_PARAM_VALUE()	\
-    token = read_token();	\
-    if (token.type != TOKEN_COLON) {	\
-        fprintf(stderr, "Expected colon, got %s\n", token.value);	\
-        exit(EXIT_FAILURE);	\
-    }	\
-    token = read_token();	\
-    if (token.type != TOKEN_NUMBER) {	\
+#define READ_PARAM_VALUE()    \
+    token = read_token();    \
+    if (token.type != TOKEN_COLON) {    \
+        fprintf(stderr, "Expected colon, got %s\n", token.value);    \
+        exit(EXIT_FAILURE);    \
+    }    \
+    token = read_token();    \
+    if (token.type != TOKEN_NUMBER) {    \
         fprintf(stderr,"Expected number, got %s\n", token.value);    \
         exit(EXIT_FAILURE);                                            \
     }
@@ -47,11 +48,7 @@ read_header()
 		case TOKEN_FUNCTIONS:
 		READ_PARAM_VALUE()
 			program.functions_count = atoll(token.value);
-			program.functions = malloc(program.functions_count * sizeof(Function));
-			if (program.functions == NULL) {
-				fprintf(stderr, "Failed to allocate memory\n");
-				exit(EXIT_FAILURE);
-			}
+			program.functions = safe_malloc(program.functions_count * sizeof(Function));
 			break;
 		default:
 			fprintf(stderr, "Unexpected token: %s\n", token.value);
@@ -100,11 +97,7 @@ read_function_info(Function *function)
 		case TOKEN_INSTRUCTIONS:
 		READ_PARAM_VALUE()
 			function->instructions_count = atoll(token.value);
-			function->instructions = malloc(function->instructions_count * sizeof(Instruction));
-			if (function->instructions == NULL) {
-				fprintf(stderr, "Failed to allocate memory\n");
-				exit(EXIT_FAILURE);
-			}
+			function->instructions = safe_malloc(function->instructions_count * sizeof(Instruction));
 			break;
 		default:
 			fprintf(stderr, "Unexpected token: %s\n", token.value);
@@ -114,12 +107,12 @@ read_function_info(Function *function)
 }
 
 static Token
-read_index()
+read_param(TokenType prefix_type, char prefix)
 {
 	Token token;
 	token = read_token();
-	if (token.type != TOKEN_DOLARSIGN) {
-		fprintf(stderr, "Expected '$', got %s\n", token.value);
+	if (token.type != prefix_type) {
+		fprintf(stderr, "Expected '%c', got %s\n", prefix, token.value);
 		exit(EXIT_FAILURE);
 	}
 	token = read_token();
@@ -128,40 +121,24 @@ read_index()
 		exit(EXIT_FAILURE);
 	}
 	return token;
+}
+
+static Token
+read_index()
+{
+	return read_param(TOKEN_DOLARSIGN, '$');
 }
 
 static Token
 read_instruction_index()
 {
-	Token token;
-	token = read_token();
-	if (token.type != TOKEN_HASHTAG) {
-		fprintf(stderr, "Expected '#', got %s\n", token.value);
-		exit(EXIT_FAILURE);
-	}
-	token = read_token();
-	if (token.type != TOKEN_NUMBER) {
-		fprintf(stderr, "Expected number, got %s\n", token.value);
-		exit(EXIT_FAILURE);
-	}
-	return token;
+	return read_param(TOKEN_HASHTAG, '#');
 }
 
 static Token
 read_function_index()
 {
-	Token token;
-	token = read_token();
-	if (token.type != TOKEN_COLON) {
-		fprintf(stderr, "Expected ':', got %s\n", token.value);
-		exit(EXIT_FAILURE);
-	}
-	token = read_token();
-	if (token.type != TOKEN_NUMBER) {
-		fprintf(stderr, "Expected number, got %s\n", token.value);
-		exit(EXIT_FAILURE);
-	}
-	return token;
+	return read_param(TOKEN_COLON, ':');
 }
 
 static Token
