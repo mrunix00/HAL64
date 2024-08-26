@@ -50,9 +50,24 @@ typedef struct
 	size_t stack_pointer;
 } OperandsStack;
 
+typedef struct {
+	uint64_t *args;
+	uint64_t *locals;
+	size_t return_function;
+	size_t return_instruction;
+} StackFrame;
+
+typedef struct
+{
+	StackFrame *stack;
+	size_t stack_size;
+	size_t stack_pointer;
+} CallStack;
+
 typedef struct
 {
 	OperandsStack stack;
+	CallStack call_stack;
 } VM;
 
 void free_program(Program program);
