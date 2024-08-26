@@ -66,6 +66,9 @@ execute_program(Program program)
 		case OP_ADD_I64:
 			push_stack(&vm, pop_stack(&vm) + pop_stack(&vm));
 			break;
+		case OP_SUB_I64:
+			push_stack(&vm, pop_stack(&vm) - pop_stack(&vm));
+			break;
 		case OP_PRINT_TOP_STACK_I64:
 			printf("%zu\n", top_stack(&vm));
 			break;
