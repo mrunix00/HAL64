@@ -12,6 +12,7 @@ typedef enum {
     OP_ADD_I64,
     OP_SUB_I64,
     OP_CALL,
+	OP_PRINT_TOP_STACK_I64,
 } InstructionOp;
 
 typedef struct {
@@ -20,7 +21,6 @@ typedef struct {
 } Instruction;
 
 typedef struct {
-    char name[64];
     Instruction *instructions;
     size_t id;
     size_t args_count;
