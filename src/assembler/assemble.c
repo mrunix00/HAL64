@@ -1,6 +1,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <limits.h>
 #include "assembler/assembler.h"
 #include "assembler/lexer.h"
 #include "utils/memory.h"
@@ -39,15 +40,27 @@ read_header()
 		switch (token.type) {
 		case TOKEN_GLOBALS:
 		READ_PARAM_VALUE()
-			program.globals_count = atoll(token.value);
+			program.globals_count = strtoll(token.value, NULL, 10);
+			if (program.globals_count == LONG_MAX) {
+				fprintf(stderr, "Invalid number: %s\n", token.value);
+				exit(EXIT_FAILURE);
+			}
 			break;
 		case TOKEN_GLOBAL_POINTERS:
 		READ_PARAM_VALUE()
-			program.global_pointers_count = atoll(token.value);
+			program.global_pointers_count = strtoll(token.value, NULL, 10);
+			if (program.global_pointers_count == LONG_MAX) {
+				fprintf(stderr, "Invalid number: %s\n", token.value);
+				exit(EXIT_FAILURE);
+			}
 			break;
 		case TOKEN_FUNCTIONS:
 		READ_PARAM_VALUE()
-			program.functions_count = atoll(token.value);
+			program.functions_count = strtoll(token.value, NULL, 10);
+			if (program.functions_count == LONG_MAX) {
+				fprintf(stderr, "Invalid number: %s\n", token.value);
+				exit(EXIT_FAILURE);
+			}
 			program.functions = safe_malloc(program.functions_count * sizeof(Function));
 			break;
 		default:
@@ -80,23 +93,43 @@ read_function_info(Function *function)
 		switch (token.type) {
 		case TOKEN_ARGS:
 		READ_PARAM_VALUE()
-			function->args_count = atoll(token.value);
+			function->args_count = strtoll(token.value, NULL, 10);
+			if (function->args_count == LONG_MAX) {
+				fprintf(stderr, "Invalid number: %s\n", token.value);
+				exit(EXIT_FAILURE);
+			}
 			break;
 		case TOKEN_PTR_ARGS:
 		READ_PARAM_VALUE()
-			function->ptr_args_count = atoll(token.value);
+			function->ptr_args_count = strtoll(token.value, NULL, 10);
+			if (function->ptr_args_count == LONG_MAX) {
+				fprintf(stderr, "Invalid number: %s\n", token.value);
+				exit(EXIT_FAILURE);
+			}
 			break;
 		case TOKEN_LOCALS:
 		READ_PARAM_VALUE()
-			function->locals_count = atoll(token.value);
+			function->locals_count = strtoll(token.value, NULL, 10);
+			if (function->locals_count == LONG_MAX) {
+				fprintf(stderr, "Invalid number: %s\n", token.value);
+				exit(EXIT_FAILURE);
+			}
 			break;
 		case TOKEN_LOCAL_POINTERS:
 		READ_PARAM_VALUE()
-			function->local_pointers_count = atoll(token.value);
+			function->local_pointers_count = strtoll(token.value, NULL, 10);
+			if (function->local_pointers_count == LONG_MAX) {
+				fprintf(stderr, "Invalid number: %s\n", token.value);
+				exit(EXIT_FAILURE);
+			}
 			break;
 		case TOKEN_INSTRUCTIONS:
 		READ_PARAM_VALUE()
-			function->instructions_count = atoll(token.value);
+			function->instructions_count = strtoll(token.value, NULL, 10);
+			if (function->instructions_count == LONG_MAX) {
+				fprintf(stderr, "Invalid number: %s\n", token.value);
+				exit(EXIT_FAILURE);
+			}
 			function->instructions = safe_malloc(function->instructions_count * sizeof(Instruction));
 			break;
 		default:
@@ -165,12 +198,20 @@ read_instruction()
 	case TOKEN_LoadArgI64:
 		instruction.op = OP_LOAD_ARG_I64;
 		token = read_index();
-		instruction.data = atoll(token.value);
+		instruction.data = strtoll(token.value, NULL, 10);
+		if (instruction.data == LONG_MAX) {
+			fprintf(stderr, "Invalid number: %s\n", token.value);
+			exit(EXIT_FAILURE);
+		}
 		break;
 	case TOKEN_PushI64:
 		instruction.op = OP_PUSH_I64;
 		token = read_literal_number();
-		instruction.data = atoll(token.value);
+		instruction.data = strtoll(token.value, NULL, 10);
+		if (instruction.data == LONG_MAX) {
+			fprintf(stderr, "Invalid number: %s\n", token.value);
+			exit(EXIT_FAILURE);
+		}
 		break;
 	case TOKEN_LessThanI64:
 		instruction.op = OP_LESS_THAN_I64;
@@ -178,7 +219,11 @@ read_instruction()
 	case TOKEN_JumpIfFalse:
 		instruction.op = OP_JUMP_IF_FALSE;
 		token = read_instruction_index();
-		instruction.data = atoll(token.value);
+		instruction.data = strtoll(token.value, NULL, 10);
+		if (instruction.data == LONG_MAX) {
+			fprintf(stderr, "Invalid number: %s\n", token.value);
+			exit(EXIT_FAILURE);
+		}
 		break;
 	case TOKEN_ReturnI64:
 		instruction.op = OP_RETURN_I64;
@@ -192,7 +237,11 @@ read_instruction()
 	case TOKEN_Call:
 		instruction.op = OP_CALL;
 		token = read_function_index();
-		instruction.data = atoll(token.value);
+		instruction.data = strtoll(token.value, NULL, 10);
+		if (instruction.data == LONG_MAX) {
+			fprintf(stderr, "Invalid number: %s\n", token.value);
+			exit(EXIT_FAILURE);
+		}
 		break;
 	case TOKEN_PrintTopStackI64:
 		instruction.op = OP_PRINT_TOP_STACK_I64;
@@ -256,7 +305,11 @@ read_function()
 		fprintf(stderr, "Expected number, got '%s'\n", token.value);
 		exit(EXIT_FAILURE);
 	}
-	function.id = atoll(token.value);
+	function.id = strtoll(token.value, NULL, 10);
+	if (function.id == LONG_MAX) {
+		fprintf(stderr, "Invalid number: %s\n", token.value);
+		exit(EXIT_FAILURE);
+	}
 
 	read_function_info(&function);
 	read_function_body(&function);
