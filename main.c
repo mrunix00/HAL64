@@ -1,5 +1,7 @@
 #include <stdio.h>
 #include <stdlib.h>
+#include <errno.h>
+#include <string.h>
 #include "assembler/assembler.h"
 #include "assembler/lexer.h"
 
@@ -8,6 +10,7 @@ read_file(const char *path)
 {
 	FILE *file = fopen(path, "r");
 	if (!file) {
+		fprintf(stderr, "Failed to open %s: %s\n", path, strerror(errno));
 		return NULL;
 	}
 	fseek(file, 0, SEEK_END);
@@ -24,9 +27,13 @@ read_file(const char *path)
 }
 
 int
-main(void)
+main(int argc, char **argv)
 {
-	char *source = read_file("fib.hal");
+	if (argc != 2) {
+		fprintf(stderr, "Usage: %s <file>\n", argv[0]);
+		return EXIT_FAILURE;
+	}
+	char *source = read_file(argv[1]);
 	Program program;
 	if (source == NULL) {
 		fprintf(stderr, "Failed to read file\n");
