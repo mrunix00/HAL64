@@ -132,8 +132,35 @@ execute_program(Program program)
 			push_stack(&vm, a - b);
 		}
 			break;
+		case OP_MUL_I64:
+			push_stack(&vm, pop_stack(&vm) * pop_stack(&vm));
+			break;
+		case OP_DIV_I64: {
+			b = pop_stack(&vm);
+			a = pop_stack(&vm);
+			push_stack(&vm, a / b);
+		}
+			break;
+		case OP_MOD_I64: {
+			b = pop_stack(&vm);
+			a = pop_stack(&vm);
+			push_stack(&vm, a % b);
+		}
+			break;
 		case OP_LESS_THAN_I64:
 			push_stack(&vm, pop_stack(&vm) > pop_stack(&vm));
+			break;
+		case OP_GREATER_THAN_I64:
+			push_stack(&vm, pop_stack(&vm) < pop_stack(&vm));
+			break;
+		case OP_EQUALS_I64:
+			push_stack(&vm, pop_stack(&vm) == pop_stack(&vm));
+			break;
+		case OP_NOT_EQUALS_I64:
+			push_stack(&vm, pop_stack(&vm) != pop_stack(&vm));
+			break;
+		case OP_NOT:
+			push_stack(&vm, !pop_stack(&vm));
 			break;
 		case OP_JUMP_IF_FALSE:
 			if (!pop_stack(&vm)) {

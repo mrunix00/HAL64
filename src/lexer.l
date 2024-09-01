@@ -28,10 +28,17 @@
 "LoadArgI64"            { return TOKEN_LoadArgI64; }
 "PushI64"               { return TOKEN_PushI64; }
 "LessThanI64"           { return TOKEN_LessThanI64; }
+"GreaterThanI64"        { return TOKEN_GreaterThanI64; }
+"EqualsI64"             { return TOKEN_EqualsI64; }
+"NotEqualsI64"          { return TOKEN_NotEqualsI64; }
+"NotI64"                { return TOKEN_Not; }
 "JumpIfFalse"           { return TOKEN_JumpIfFalse; }
 "ReturnI64"             { return TOKEN_ReturnI64; }
 "AddI64"                { return TOKEN_AddI64; }
 "SubI64"                { return TOKEN_SubI64; }
+"DivI64"                { return TOKEN_DivI64; }
+"MulI64"                { return TOKEN_MulI64; }
+"ModI64"                { return TOKEN_ModI64; }
 "Call"                  { return TOKEN_Call; }
 "PrintTopStackI64"      { return TOKEN_PrintTopStackI64; }
 "Exit"                  { return TOKEN_Exit; }

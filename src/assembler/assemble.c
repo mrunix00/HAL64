@@ -216,6 +216,18 @@ read_instruction()
 	case TOKEN_LessThanI64:
 		instruction.op = OP_LESS_THAN_I64;
 		break;
+	case TOKEN_GreaterThanI64:
+		instruction.op = OP_GREATER_THAN_I64;
+		break;
+	case TOKEN_EqualsI64:
+		instruction.op = OP_EQUALS_I64;
+		break;
+	case TOKEN_NotEqualsI64:
+		instruction.op = OP_NOT_EQUALS_I64;
+		break;
+	case TOKEN_Not:
+		instruction.op = OP_NOT;
+		break;
 	case TOKEN_JumpIfFalse:
 		instruction.op = OP_JUMP_IF_FALSE;
 		token = read_instruction_index();
@@ -233,6 +245,15 @@ read_instruction()
 		break;
 	case TOKEN_SubI64:
 		instruction.op = OP_SUB_I64;
+		break;
+	case TOKEN_MulI64:
+		instruction.op = OP_MUL_I64;
+		break;
+	case TOKEN_DivI64:
+		instruction.op = OP_DIV_I64;
+		break;
+	case TOKEN_ModI64:
+		instruction.op = OP_MOD_I64;
 		break;
 	case TOKEN_Call:
 		instruction.op = OP_CALL;
