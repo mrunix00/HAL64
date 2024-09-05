@@ -1,15 +1,14 @@
 ---
 globals: 0
 global_pointers: 0
-functions: 2
 ---
-:0 { args: 0 ptr_args: 0 locals: 0 local_pointers: 0 instructions: 4 } {
+:0 { args: 0 ptr_args: 0 locals: 0 local_pointers: 0 } {
     PushI64 30;
     Call :1;
     PrintTopStackI64;
     Exit;
 }
-:1 { args: 1 ptr_args: 0 locals: 0 local_pointers: 0 instructions: 16 } {
+:1 { args: 1 ptr_args: 0 locals: 0 local_pointers: 0 } {
     LoadArgI64 $0;
     PushI64 2;
     LessThanI64;

@@ -1,5 +1,6 @@
 #include <stdlib.h>
 #include <stdio.h>
+#include <string.h>
 #include "hal64.h"
 #include "utils/memory.h"
 
@@ -7,9 +8,8 @@ void
 free_program(Program program)
 {
 	size_t i;
-	for (i = 0; i < program.functions_count; i++) {
+	for (i = 0; i < program.functions_count; i++)
 		free(program.functions[i].instructions);
-	}
 	free(program.functions);
 }
 
@@ -89,7 +89,38 @@ print_program(Program program)
 {
 	print_header(program);
 	size_t i;
-	for (i = 0; i < program.functions_count; i++) {
+	for (i = 0; i < program.functions_count; i++)
 		print_function(program.functions[i]);
+}
+
+Program
+init_program(void) {
+	Program program;
+	memset(&program, 0, sizeof(Program));
+	return program;
+}
+
+Function
+init_function() {
+	Function function;
+	memset(&function, 0, sizeof(Function));
+	return function;
+}
+
+void
+emit_function(Program *program, Function function)
+{
+	if (function.id >= program->functions_count) {
+		program->functions_count = function.id + 1;
+		program->functions = safe_realloc(program->functions, (program->functions_count + 1) * sizeof(Function));
 	}
+	program->functions[function.id] = function;
+}
+
+void
+emit_instruction(Function *function, Instruction instruction)
+{
+	function->instructions = safe_realloc(function->instructions, (function->instructions_count + 1) * sizeof(Instruction));
+	function->instructions[function->instructions_count] = instruction;
+	function->instructions_count++;
 }

@@ -1,10 +1,10 @@
 #include <stdio.h>
 #include <stdlib.h>
-#include <string.h>
 #include <limits.h>
 #include "assembler/assembler.h"
 #include "assembler/lexer.h"
 #include "utils/memory.h"
+#include "utils/errors.h"
 
 #define READ_PARAM_VALUE()    \
     token = read_token();    \
@@ -21,10 +21,9 @@
 static Program
 read_header()
 {
-	Program program;
+	Program program = init_program();
 	Token token = read_token();
 
-	memset(&program, 0, sizeof(Program));
 	if (token.type != TOKEN_HEADER_SEPARATOR) {
 		fprintf(stderr, "Invalid header!\n");
 		exit(EXIT_FAILURE);
@@ -53,15 +52,6 @@ read_header()
 				fprintf(stderr, "Invalid number: %s\n", token.value);
 				exit(EXIT_FAILURE);
 			}
-			break;
-		case TOKEN_FUNCTIONS:
-		READ_PARAM_VALUE()
-			program.functions_count = strtoll(token.value, NULL, 10);
-			if (program.functions_count == LONG_MAX) {
-				fprintf(stderr, "Invalid number: %s\n", token.value);
-				exit(EXIT_FAILURE);
-			}
-			program.functions = safe_malloc(program.functions_count * sizeof(Function));
 			break;
 		default:
 			fprintf(stderr, "Unexpected token: %s\n", token.value);
@@ -123,15 +113,6 @@ read_function_info(Function *function)
 				exit(EXIT_FAILURE);
 			}
 			break;
-		case TOKEN_INSTRUCTIONS:
-		READ_PARAM_VALUE()
-			function->instructions_count = strtoll(token.value, NULL, 10);
-			if (function->instructions_count == LONG_MAX) {
-				fprintf(stderr, "Invalid number: %s\n", token.value);
-				exit(EXIT_FAILURE);
-			}
-			function->instructions = safe_malloc(function->instructions_count * sizeof(Instruction));
-			break;
 		default:
 			fprintf(stderr, "Unexpected token: %s\n", token.value);
 			exit(EXIT_FAILURE);
@@ -186,89 +167,89 @@ read_literal_number()
 	return token;
 }
 
-static Instruction
-read_instruction()
+static hal64_error
+read_instruction(Instruction *instruction)
 {
-	Instruction instruction;
 	Token token;
-	memset(&instruction, 0, sizeof(Instruction));
 
 	token = read_token();
 	switch (token.type) {
+	case TOKEN_CLOSE_BRACE:
+		return HAL64_END_OF_BODY;
 	case TOKEN_LoadArgI64:
-		instruction.op = OP_LOAD_ARG_I64;
+		instruction->op = OP_LOAD_ARG_I64;
 		token = read_index();
-		instruction.data = strtoll(token.value, NULL, 10);
-		if (instruction.data == LONG_MAX) {
+		instruction->data = strtoll(token.value, NULL, 10);
+		if (instruction->data == LONG_MAX) {
 			fprintf(stderr, "Invalid number: %s\n", token.value);
 			exit(EXIT_FAILURE);
 		}
 		break;
 	case TOKEN_PushI64:
-		instruction.op = OP_PUSH_I64;
+		instruction->op = OP_PUSH_I64;
 		token = read_literal_number();
-		instruction.data = strtoll(token.value, NULL, 10);
-		if (instruction.data == LONG_MAX) {
+		instruction->data = strtoll(token.value, NULL, 10);
+		if (instruction->data == LONG_MAX) {
 			fprintf(stderr, "Invalid number: %s\n", token.value);
 			exit(EXIT_FAILURE);
 		}
 		break;
 	case TOKEN_LessThanI64:
-		instruction.op = OP_LESS_THAN_I64;
+		instruction->op = OP_LESS_THAN_I64;
 		break;
 	case TOKEN_GreaterThanI64:
-		instruction.op = OP_GREATER_THAN_I64;
+		instruction->op = OP_GREATER_THAN_I64;
 		break;
 	case TOKEN_EqualsI64:
-		instruction.op = OP_EQUALS_I64;
+		instruction->op = OP_EQUALS_I64;
 		break;
 	case TOKEN_NotEqualsI64:
-		instruction.op = OP_NOT_EQUALS_I64;
+		instruction->op = OP_NOT_EQUALS_I64;
 		break;
 	case TOKEN_Not:
-		instruction.op = OP_NOT;
+		instruction->op = OP_NOT;
 		break;
 	case TOKEN_JumpIfFalse:
-		instruction.op = OP_JUMP_IF_FALSE;
+		instruction->op = OP_JUMP_IF_FALSE;
 		token = read_instruction_index();
-		instruction.data = strtoll(token.value, NULL, 10);
-		if (instruction.data == LONG_MAX) {
+		instruction->data = strtoll(token.value, NULL, 10);
+		if (instruction->data == LONG_MAX) {
 			fprintf(stderr, "Invalid number: %s\n", token.value);
 			exit(EXIT_FAILURE);
 		}
 		break;
 	case TOKEN_ReturnI64:
-		instruction.op = OP_RETURN_I64;
+		instruction->op = OP_RETURN_I64;
 		break;
 	case TOKEN_AddI64:
-		instruction.op = OP_ADD_I64;
+		instruction->op = OP_ADD_I64;
 		break;
 	case TOKEN_SubI64:
-		instruction.op = OP_SUB_I64;
+		instruction->op = OP_SUB_I64;
 		break;
 	case TOKEN_MulI64:
-		instruction.op = OP_MUL_I64;
+		instruction->op = OP_MUL_I64;
 		break;
 	case TOKEN_DivI64:
-		instruction.op = OP_DIV_I64;
+		instruction->op = OP_DIV_I64;
 		break;
 	case TOKEN_ModI64:
-		instruction.op = OP_MOD_I64;
+		instruction->op = OP_MOD_I64;
 		break;
 	case TOKEN_Call:
-		instruction.op = OP_CALL;
+		instruction->op = OP_CALL;
 		token = read_function_index();
-		instruction.data = strtoll(token.value, NULL, 10);
-		if (instruction.data == LONG_MAX) {
+		instruction->data = strtoll(token.value, NULL, 10);
+		if (instruction->data == LONG_MAX) {
 			fprintf(stderr, "Invalid number: %s\n", token.value);
 			exit(EXIT_FAILURE);
 		}
 		break;
 	case TOKEN_PrintTopStackI64:
-		instruction.op = OP_PRINT_TOP_STACK_I64;
+		instruction->op = OP_PRINT_TOP_STACK_I64;
 		break;
 	case TOKEN_Exit:
-		instruction.op = OP_EXIT;
+		instruction->op = OP_EXIT;
 		break;
 	default:
 		fprintf(stderr, "Invalid instruction: %s\n", token.value);
@@ -281,14 +262,15 @@ read_instruction()
 		exit(EXIT_FAILURE);
 	}
 
-	return instruction;
+	return HAL64_OK;
 }
 
 static void
 read_function_body(Function *function)
 {
 	Token token;
-	size_t i;
+	Instruction instruction;
+	hal64_error error;
 
 	token = read_token(); // read an open brace
 	if (token.type != TOKEN_OPEN_BRACE) {
@@ -296,26 +278,22 @@ read_function_body(Function *function)
 		exit(EXIT_FAILURE);
 	}
 
-	for (i = 0; i < function->instructions_count; i++) {
-		function->instructions[i] = read_instruction();
-	}
-
-	token = read_token(); // read a close brace
-	if (token.type != TOKEN_CLOSE_BRACE) {
-		fprintf(stderr, "Expected '}', got %s\n", token.value);
-		exit(EXIT_FAILURE);
+	while (1) {
+		error = read_instruction(&instruction);
+		if (error == HAL64_END_OF_BODY)
+			break;
+		emit_instruction(function, instruction);
 	}
 }
 
-static Function
-read_function()
+static hal64_error
+read_function(Function *function)
 {
-	Function function;
 	Token token;
 
-	memset(&function, 0, sizeof(Function));
-
 	token = read_token(); // read a colon
+	if (token.type == TOKEN_EOF)
+		return HAL64_EOF;
 	if (token.type != TOKEN_COLON) {
 		fprintf(stderr, "Expected colon, got '%s'\n", token.value);
 		exit(EXIT_FAILURE);
@@ -326,16 +304,16 @@ read_function()
 		fprintf(stderr, "Expected number, got '%s'\n", token.value);
 		exit(EXIT_FAILURE);
 	}
-	function.id = strtoll(token.value, NULL, 10);
-	if (function.id == LONG_MAX) {
+	function->id = strtoll(token.value, NULL, 10);
+	if (function->id == LONG_MAX) {
 		fprintf(stderr, "Invalid number: %s\n", token.value);
 		exit(EXIT_FAILURE);
 	}
 
-	read_function_info(&function);
-	read_function_body(&function);
+	read_function_info(function);
+	read_function_body(function);
 
-	return function;
+	return HAL64_OK;
 }
 
 Program
@@ -343,15 +321,17 @@ assemble(const char *source)
 {
 	Program program;
 	Function function;
-	size_t i;
+	hal64_error error;
 
 	init_lexer(source);
 
 	program = read_header();
-	for (i = 0; i < program.functions_count; i++) {
-		function = read_function();
-		program.functions[function.id] = function;
+	while (1) {
+		function = init_function();
+		error = read_function(&function);
+		if (error == HAL64_EOF)
+			break;
+		emit_function(&program, function);
 	}
-
 	return program;
 }

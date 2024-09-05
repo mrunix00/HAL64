@@ -12,7 +12,6 @@
 "---"                   { return TOKEN_HEADER_SEPARATOR; }
 "globals"               { return TOKEN_GLOBALS; }
 "global_pointers"       { return TOKEN_GLOBAL_POINTERS; }
-"functions"             { return TOKEN_FUNCTIONS; }
 ":"                     { return TOKEN_COLON; }
 ","                     { return TOKEN_COMMA; }
 ";"                     { return TOKEN_SEMICOLON; }
@@ -24,7 +23,6 @@
 "ptr_args"              { return TOKEN_PTR_ARGS; }
 "locals"                { return TOKEN_LOCALS; }
 "local_pointers"        { return TOKEN_LOCAL_POINTERS; }
-"instructions"          { return TOKEN_INSTRUCTIONS; }
 "LoadArgI64"            { return TOKEN_LoadArgI64; }
 "PushI64"               { return TOKEN_PushI64; }
 "LessThanI64"           { return TOKEN_LessThanI64; }

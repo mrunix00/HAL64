@@ -77,6 +77,11 @@ typedef struct
 	CallStack call_stack;
 } VM;
 
+Program init_program(void);
+Function init_function(void);
+void emit_function(Program *program, Function function);
+void emit_instruction(Function *function, Instruction instruction);
+
 void free_program(Program program);
 void print_program(Program program);
 
