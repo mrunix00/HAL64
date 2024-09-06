@@ -13,7 +13,6 @@
 "globals"               { return TOKEN_GLOBALS; }
 "global_pointers"       { return TOKEN_GLOBAL_POINTERS; }
 ":"                     { return TOKEN_COLON; }
-","                     { return TOKEN_COMMA; }
 ";"                     { return TOKEN_SEMICOLON; }
 "#"                     { return TOKEN_HASHTAG; }
 "$"                     { return TOKEN_DOLARSIGN; }
