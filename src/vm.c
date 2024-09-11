@@ -163,7 +163,7 @@ execute_program(Program program)
 			func = program.functions + instr->data.reg;
 			instr = func->instructions - 1;
 			break;
-		case OP_RETURN_I64: {
+		case OP_RETURN: {
 			func = program.functions + vm.call_stack[vm.call_stack_size - 3];
 			instr = func->instructions + vm.call_stack[vm.call_stack_size - 2];
 			pop_stack_frame(&vm);

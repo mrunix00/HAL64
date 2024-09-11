@@ -33,7 +33,7 @@
 "NotEqualsI64"          { return TOKEN_NotEqualsI64; }
 "NotI64"                { return TOKEN_Not; }
 "JumpIfFalse"           { return TOKEN_JumpIfFalse; }
-"ReturnI64"             { return TOKEN_ReturnI64; }
+"Return"                { return TOKEN_Return; }
 "AddI64_RI"             { return TOKEN_AddI64_RI; }
 "AddI64"                { return TOKEN_AddI64; }
 "SubI64_RI"             { return TOKEN_SubI64_RI; }

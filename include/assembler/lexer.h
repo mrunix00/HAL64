@@ -23,7 +23,7 @@ typedef enum
 	TOKEN_NotEqualsI64,
 	TOKEN_Not,
 	TOKEN_JumpIfFalse,
-	TOKEN_ReturnI64,
+	TOKEN_Return,
 	TOKEN_AddI64_RI,
 	TOKEN_AddI64,
 	TOKEN_SubI64_RI,

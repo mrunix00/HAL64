@@ -70,8 +70,8 @@ instruction_as_string(Instruction instruction, char *string, size_t max_length)
 	case OP_JUMP_IF_FALSE:
 		snprintf(string, max_length, "JUMP_IF_FALSE #%zu", instruction.data);
 		break;
-	case OP_RETURN_I64:
-		snprintf(string, max_length, "RETURN_I64");
+	case OP_RETURN:
+		snprintf(string, max_length, "RETURN");
 		break;
 	case OP_ADD_I64_RI:
 		snprintf(string, max_length, "ADD_I64_RI $%zu %zu", instruction.data.ri.reg, instruction.data.ri.immediate);

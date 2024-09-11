@@ -12,11 +12,11 @@ global_pointers: 0
     LessThanI64_RI $0 2;
     JumpIfFalse #4;
     LoadLocalI64 $0;
-    ReturnI64;
+    Return;
     SubI64_RI $0 1;
     Call :1;
     SubI64_RI $0 2;
     Call :1;
     AddI64;
-    ReturnI64;
+    Return;
 }

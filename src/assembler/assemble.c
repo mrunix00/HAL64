@@ -247,8 +247,8 @@ read_instruction(Instruction *instruction)
 			exit(EXIT_FAILURE);
 		}
 		break;
-	case TOKEN_ReturnI64:
-		instruction->op = OP_RETURN_I64;
+	case TOKEN_Return:
+		instruction->op = OP_RETURN;
 		break;
 	case TOKEN_AddI64_RI:
 		instruction->op = OP_ADD_I64_RI;
