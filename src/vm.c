@@ -20,6 +20,7 @@ void
 free_vm(VM vm)
 {
 	free(vm.call_stack);
+	free(vm.operands_stack);
 }
 
 static void
