@@ -125,12 +125,13 @@ init_function()
 void
 emit_function(Program *program, Function function)
 {
-	uint64_t i, depth;
 	if (function.id >= program->functions_count) {
 		program->functions_count = function.id + 1;
 		program->functions = safe_realloc(program->functions, (program->functions_count + 1) * sizeof(Function));
 	}
 	program->functions[function.id] = function;
+	program->functions[function.id].stack_frame_size =
+		function.locals_count + function.local_pointers_count + 3;
 }
 
 void

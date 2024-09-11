@@ -25,6 +25,10 @@ free_vm(VM vm)
 static void
 push_stack(VM *vm, uint64_t value)
 {
+	if (vm->operands_stack_size >= vm->operands_stack_capacity) {
+		vm->operands_stack_capacity *= 2;
+		vm->operands_stack = safe_realloc(vm->operands_stack, vm->operands_stack_capacity * sizeof(uint64_t));
+	}
 	vm->operands_stack[vm->operands_stack_size++] = value;
 }
 
@@ -63,10 +67,6 @@ call_function(VM *vm, const Program *program, size_t current_function, size_t cu
 		vm->call_stack_capacity *= 2;
 		vm->call_stack = safe_realloc(vm->call_stack, vm->call_stack_capacity * sizeof(uint64_t));
 	}
-	if (vm->operands_stack_size + function.stack_depth >= vm->operands_stack_capacity) {
-		vm->operands_stack_capacity *= 2;
-		vm->operands_stack = safe_realloc(vm->operands_stack, vm->operands_stack_capacity * sizeof(uint64_t));
-	}
 
 	vm->locals = vm->call_stack + vm->call_stack_size;
 	vm->call_stack_size += function.stack_frame_size;
@@ -78,54 +78,6 @@ call_function(VM *vm, const Program *program, size_t current_function, size_t cu
 		vm->locals[i] = pop_stack(vm);
 }
 
-int64_t
-get_stack_depth(Program *program, Instruction inst)
-{
-	switch (inst.op) {
-	case OP_PUSH_I64:
-	case OP_LOAD_LOCAL_I64:
-	case OP_ADD_I64_RI:
-	case OP_SUB_I64_RI:
-	case OP_LESS_THAN_I64_RI:
-		return 1;
-	case OP_ADD_I64:
-	case OP_SUB_I64:
-	case OP_MUL_I64:
-	case OP_DIV_I64:
-	case OP_MOD_I64:
-	case OP_LESS_THAN_I64:
-	case OP_GREATER_THAN_I64:
-	case OP_EQUALS_I64:
-	case OP_NOT_EQUALS_I64:
-	case OP_RETURN_I64:
-		return -1;
-	case OP_CALL:
-		return -program->functions[inst.data.reg].args_count + 1;
-	default:
-		return 0;
-	}
-}
-
-static void
-prepare_program(Program *program)
-{
-	Function *function;
-	size_t i, j, depth;
-	for (i = 0; i < program->functions_count; i++) {
-		function = &program->functions[i];
-		function->stack_depth = 0;
-		for (j = 0; j < function->instructions_count; j++) {
-			depth = get_stack_depth(program, function->instructions[j]);
-			if (depth > 0)
-				function->stack_depth += depth;
-		}
-		function->stack_frame_size =
-			function->locals_count +
-				function->local_pointers_count
-				+ 3;
-	}
-}
-
 void
 execute_program(Program program)
 {
@@ -135,7 +87,6 @@ execute_program(Program program)
 	Instruction *instr;
 	uint64_t a, b;
 
-	prepare_program(&program);
 	vm.call_stack_size = func->stack_frame_size;
 	vm.locals = vm.call_stack;
 	vm.call_stack[vm.call_stack_size - 1] = vm.call_stack_size;

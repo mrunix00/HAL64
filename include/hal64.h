@@ -58,7 +58,6 @@ typedef struct
 	size_t ptr_args_count;
 	size_t locals_count;
 	size_t local_pointers_count;
-	size_t stack_depth;
 	size_t instructions_count;
 	size_t stack_frame_size;
 } Function;
