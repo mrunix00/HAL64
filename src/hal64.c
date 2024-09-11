@@ -51,8 +51,8 @@ instruction_as_string(Instruction instruction, char *string, size_t max_length)
 	case OP_NOOP:
 		snprintf(string, max_length, "NOOP");
 		break;
-	case OP_LOAD_ARG_I64:
-		snprintf(string, max_length, "LOAD_ARG_I64 $%zu", instruction.data);
+	case OP_LOAD_LOCAL_I64:
+		snprintf(string, max_length, "LOAD_LOCAL_I64 $%zu", instruction.data);
 		break;
 	case OP_PUSH_I64:
 		snprintf(string, max_length, "PUSH_I64 %zu", instruction.data);
@@ -94,14 +94,16 @@ print_program(Program program)
 }
 
 Program
-init_program(void) {
+init_program(void)
+{
 	Program program;
 	memset(&program, 0, sizeof(Program));
 	return program;
 }
 
 Function
-init_function() {
+init_function()
+{
 	Function function;
 	memset(&function, 0, sizeof(Function));
 	return function;
@@ -110,6 +112,7 @@ init_function() {
 void
 emit_function(Program *program, Function function)
 {
+	uint64_t i, depth;
 	if (function.id >= program->functions_count) {
 		program->functions_count = function.id + 1;
 		program->functions = safe_realloc(program->functions, (program->functions_count + 1) * sizeof(Function));
@@ -120,7 +123,8 @@ emit_function(Program *program, Function function)
 void
 emit_instruction(Function *function, Instruction instruction)
 {
-	function->instructions = safe_realloc(function->instructions, (function->instructions_count + 1) * sizeof(Instruction));
+	function->instructions =
+		safe_realloc(function->instructions, (function->instructions_count + 1) * sizeof(Instruction));
 	function->instructions[function->instructions_count] = instruction;
 	function->instructions_count++;
 }

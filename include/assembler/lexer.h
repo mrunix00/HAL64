@@ -12,7 +12,7 @@ typedef enum
 	TOKEN_PTR_ARGS,
 	TOKEN_LOCALS,
 	TOKEN_LOCAL_POINTERS,
-	TOKEN_LoadArgI64,
+	TOKEN_LoadLocalI64,
 	TOKEN_PushI64,
 	TOKEN_LessThanI64,
 	TOKEN_GreaterThanI64,

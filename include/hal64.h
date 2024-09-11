@@ -6,7 +6,7 @@
 typedef enum
 {
 	OP_NOOP = 0,
-	OP_LOAD_ARG_I64,
+	OP_LOAD_LOCAL_I64,
 	OP_PUSH_I64,
 	OP_LESS_THAN_I64,
 	OP_GREATER_THAN_I64,
@@ -39,7 +39,9 @@ typedef struct
 	size_t ptr_args_count;
 	size_t locals_count;
 	size_t local_pointers_count;
+	size_t stack_depth;
 	size_t instructions_count;
+	size_t stack_frame_size;
 } Function;
 
 typedef struct
@@ -52,29 +54,13 @@ typedef struct
 
 typedef struct
 {
-	uint64_t *stack;
-	size_t stack_size;
-	size_t stack_pointer;
-} OperandsStack;
-
-typedef struct {
-	uint64_t *args;
+	uint64_t *call_stack;
+	uint64_t *operands_stack;
 	uint64_t *locals;
-	size_t return_function;
-	size_t return_instruction;
-} StackFrame;
-
-typedef struct
-{
-	StackFrame *stack;
-	size_t stack_size;
-	size_t stack_pointer;
-} CallStack;
-
-typedef struct
-{
-	OperandsStack stack;
-	CallStack call_stack;
+	size_t call_stack_size;
+	size_t call_stack_capacity;
+	size_t operands_stack_size;
+	size_t operands_stack_capacity;
 } VM;
 
 Program init_program(void);

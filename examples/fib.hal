@@ -8,18 +8,18 @@ global_pointers: 0
     PrintTopStackI64;
     Exit;
 }
-:1 { args: 1 ptr_args: 0 locals: 0 local_pointers: 0 } {
-    LoadArgI64 $0;
+:1 { args: 1 ptr_args: 0 locals: 1 local_pointers: 0 } {
+    LoadLocalI64 $0;
     PushI64 2;
     LessThanI64;
     JumpIfFalse #6;
-    LoadArgI64 $0;
+    LoadLocalI64 $0;
     ReturnI64;
-    LoadArgI64 $0;
+    LoadLocalI64 $0;
     PushI64 1;
     SubI64;
     Call :1;
-    LoadArgI64 $0;
+    LoadLocalI64 $0;
     PushI64 2;
     SubI64;
     Call :1;

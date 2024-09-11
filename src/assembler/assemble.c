@@ -176,8 +176,8 @@ read_instruction(Instruction *instruction)
 	switch (token.type) {
 	case TOKEN_CLOSE_BRACE:
 		return HAL64_END_OF_BODY;
-	case TOKEN_LoadArgI64:
-		instruction->op = OP_LOAD_ARG_I64;
+	case TOKEN_LoadLocalI64:
+		instruction->op = OP_LOAD_LOCAL_I64;
 		token = read_index();
 		instruction->data = strtoll(token.value, NULL, 10);
 		if (instruction->data == LONG_MAX) {

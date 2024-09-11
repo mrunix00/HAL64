@@ -22,7 +22,7 @@
 "ptr_args"              { return TOKEN_PTR_ARGS; }
 "locals"                { return TOKEN_LOCALS; }
 "local_pointers"        { return TOKEN_LOCAL_POINTERS; }
-"LoadArgI64"            { return TOKEN_LoadArgI64; }
+"LoadLocalI64"          { return TOKEN_LoadLocalI64; }
 "PushI64"               { return TOKEN_PushI64; }
 "LessThanI64"           { return TOKEN_LessThanI64; }
 "GreaterThanI64"        { return TOKEN_GreaterThanI64; }
