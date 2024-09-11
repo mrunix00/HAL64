@@ -84,6 +84,9 @@ get_stack_depth(Program *program, Instruction inst)
 	switch (inst.op) {
 	case OP_PUSH_I64:
 	case OP_LOAD_LOCAL_I64:
+	case OP_ADD_I64_RI:
+	case OP_SUB_I64_RI:
+	case OP_LESS_THAN_I64_RI:
 		return 1;
 	case OP_ADD_I64:
 	case OP_SUB_I64:
@@ -97,7 +100,7 @@ get_stack_depth(Program *program, Instruction inst)
 	case OP_RETURN_I64:
 		return -1;
 	case OP_CALL:
-		return -program->functions[inst.data].args_count + 1;
+		return -program->functions[inst.data.reg].args_count + 1;
 	default:
 		return 0;
 	}
@@ -141,13 +144,19 @@ execute_program(Program program)
 	for (instr = func->instructions;; instr++) {
 		switch (instr->op) {
 		case OP_PUSH_I64:
-			push_stack(&vm, instr->data);
+			push_stack(&vm, instr->data.immediate);
 			break;
 		case OP_LOAD_LOCAL_I64:
-			push_stack(&vm, vm.locals[instr->data]);
+			push_stack(&vm, vm.locals[instr->data.reg]);
+			break;
+		case OP_ADD_I64_RI:
+			push_stack(&vm, vm.locals[instr->data.ri.reg] + instr->data.ri.immediate);
 			break;
 		case OP_ADD_I64:
 			push_stack(&vm, pop_stack(&vm) + pop_stack(&vm));
+			break;
+		case OP_SUB_I64_RI:
+			push_stack(&vm, vm.locals[instr->data.ri.reg] - instr->data.ri.immediate);
 			break;
 		case OP_SUB_I64: {
 			b = pop_stack(&vm);
@@ -170,6 +179,9 @@ execute_program(Program program)
 			push_stack(&vm, a % b);
 		}
 			break;
+		case OP_LESS_THAN_I64_RI:
+			push_stack(&vm, vm.locals[instr->data.ri.reg] < instr->data.ri.immediate);
+			break;
 		case OP_LESS_THAN_I64:
 			push_stack(&vm, pop_stack(&vm) > pop_stack(&vm));
 			break;
@@ -187,7 +199,7 @@ execute_program(Program program)
 			break;
 		case OP_JUMP_IF_FALSE:
 			if (!pop_stack(&vm)) {
-				instr = func->instructions + instr->data - 1;
+				instr = func->instructions + instr->data.reg - 1;
 			}
 			break;
 		case OP_PRINT_TOP_STACK_I64:
@@ -196,8 +208,8 @@ execute_program(Program program)
 		case OP_EXIT:
 			goto end;
 		case OP_CALL:
-			call_function(&vm, &program, func - program.functions, instr - func->instructions, instr->data);
-			func = program.functions + instr->data;
+			call_function(&vm, &program, func - program.functions, instr - func->instructions, instr->data.reg);
+			func = program.functions + instr->data.reg;
 			instr = func->instructions - 1;
 			break;
 		case OP_RETURN_I64: {

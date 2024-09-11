@@ -57,6 +57,13 @@ instruction_as_string(Instruction instruction, char *string, size_t max_length)
 	case OP_PUSH_I64:
 		snprintf(string, max_length, "PUSH_I64 %zu", instruction.data);
 		break;
+	case OP_LESS_THAN_I64_RI:
+		snprintf(string,
+				 max_length,
+				 "LESS_THAN_I64_RI $%zu %zu",
+				 instruction.data.ri.reg,
+				 instruction.data.ri.immediate);
+		break;
 	case OP_LESS_THAN_I64:
 		snprintf(string, max_length, "LESS_THAN_I64");
 		break;
@@ -66,8 +73,14 @@ instruction_as_string(Instruction instruction, char *string, size_t max_length)
 	case OP_RETURN_I64:
 		snprintf(string, max_length, "RETURN_I64");
 		break;
+	case OP_ADD_I64_RI:
+		snprintf(string, max_length, "ADD_I64_RI $%zu %zu", instruction.data.ri.reg, instruction.data.ri.immediate);
+		break;
 	case OP_ADD_I64:
 		snprintf(string, max_length, "ADD_I64");
+		break;
+	case OP_SUB_I64_RI:
+		snprintf(string, max_length, "SUB_I64_RI $%zu %zu", instruction.data.ri.reg, instruction.data.ri.immediate);
 		break;
 	case OP_SUB_I64:
 		snprintf(string, max_length, "SUB_I64");

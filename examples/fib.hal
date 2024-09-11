@@ -9,19 +9,13 @@ global_pointers: 0
     Exit;
 }
 :1 { args: 1 ptr_args: 0 locals: 1 local_pointers: 0 } {
-    LoadLocalI64 $0;
-    PushI64 2;
-    LessThanI64;
-    JumpIfFalse #6;
+    LessThanI64_RI $0 2;
+    JumpIfFalse #4;
     LoadLocalI64 $0;
     ReturnI64;
-    LoadLocalI64 $0;
-    PushI64 1;
-    SubI64;
+    SubI64_RI $0 1;
     Call :1;
-    LoadLocalI64 $0;
-    PushI64 2;
-    SubI64;
+    SubI64_RI $0 2;
     Call :1;
     AddI64;
     ReturnI64;

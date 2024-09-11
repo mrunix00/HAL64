@@ -8,17 +8,25 @@ typedef enum
 	OP_NOOP = 0,
 	OP_LOAD_LOCAL_I64,
 	OP_PUSH_I64,
+	OP_LESS_THAN_I64_RI,
 	OP_LESS_THAN_I64,
+	OP_GREATER_THAN_I64_RI,
 	OP_GREATER_THAN_I64,
+	OP_EQUALS_I64_RI,
 	OP_EQUALS_I64,
 	OP_NOT_EQUALS_I64,
 	OP_NOT,
 	OP_JUMP_IF_FALSE,
 	OP_RETURN_I64,
+	OP_ADD_I64_RI,
 	OP_ADD_I64,
+	OP_SUB_I64_RI,
 	OP_SUB_I64,
+	OP_MUL_I64_RI,
 	OP_MUL_I64,
+	OP_DIV_I64_RI,
 	OP_DIV_I64,
+	OP_MOD_I64_RI,
 	OP_MOD_I64,
 	OP_CALL,
 	OP_PRINT_TOP_STACK_I64,
@@ -28,7 +36,18 @@ typedef enum
 typedef struct
 {
 	InstructionOp op;
-	uint64_t data;
+	union {
+		uint64_t immediate;
+		size_t reg;
+		struct {
+			size_t reg;
+			uint64_t immediate;
+		} ri;
+		struct {
+			size_t reg1;
+			size_t reg2;
+		} rr;
+	} data;
 } Instruction;
 
 typedef struct
