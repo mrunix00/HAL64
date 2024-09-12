@@ -79,12 +79,6 @@ pop_pointer_stack(VM *vm)
 	return vm->pointers_stack.data[--vm->pointers_stack.size];
 }
 
-static uint64_t
-top_stack(VM *vm)
-{
-	return vm->operands_stack.data[vm->operands_stack.size - 1];
-}
-
 static size_t
 get_stack_frame_size(VM *vm)
 {
@@ -194,7 +188,7 @@ execute_program(Program program)
 			}
 			break;
 		case OP_PRINT_TOP_STACK_I64:
-			printf("%zu\n", top_stack(&vm));
+			printf("%zu\n", pop_stack(&vm));
 			break;
 		case OP_EXIT:
 			goto end;
