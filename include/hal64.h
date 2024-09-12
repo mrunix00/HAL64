@@ -30,23 +30,34 @@ typedef enum
 	OP_MOD_I64,
 	OP_CALL,
 	OP_PRINT_TOP_STACK_I64,
+	OP_PUSH_LITERAL_STRING,
+	OP_CONCAT_STRINGS,
+	OP_PRINT_STRING,
 	OP_EXIT,
 } InstructionOp;
 
 typedef struct
 {
 	InstructionOp op;
-	union {
+	union
+	{
 		uint64_t immediate;
 		size_t reg;
-		struct {
+		struct
+		{
 			size_t reg;
 			uint64_t immediate;
 		} ri;
-		struct {
+		struct
+		{
 			size_t reg1;
 			size_t reg2;
 		} rr;
+		struct
+		{
+			char *ptr;
+			size_t size;
+		} string;
 	} data;
 } Instruction;
 
@@ -72,13 +83,31 @@ typedef struct
 
 typedef struct
 {
-	uint64_t *call_stack;
-	uint64_t *operands_stack;
+	uint8_t marked;
+	size_t size;
+	void *data;
+} HeapObject;
+
+typedef struct {
+	uint64_t *data;
+	size_t size;
+	size_t capacity;
+} Array;
+
+typedef struct {
+	HeapObject *data;
+	size_t size;
+	size_t capacity;
+} PointersArray;
+
+typedef struct
+{
+	Array call_stack;
+	Array operands_stack;
+	PointersArray pointers_stack;
+	PointersArray objects;
 	uint64_t *locals;
-	size_t call_stack_size;
-	size_t call_stack_capacity;
-	size_t operands_stack_size;
-	size_t operands_stack_capacity;
+	size_t allocated_heap_size;
 } VM;
 
 Program init_program(void);

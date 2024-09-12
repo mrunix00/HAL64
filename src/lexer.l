@@ -8,6 +8,7 @@
 %%
 
 [ \t\n]+                { /* ignore whitespace */ }
+\"([^\\"]|\\.)*\"       { return TOKEN_STRING;}
 [0-9]+                  { return TOKEN_NUMBER; }
 "---"                   { return TOKEN_HEADER_SEPARATOR; }
 "globals"               { return TOKEN_GLOBALS; }
@@ -46,6 +47,9 @@
 "ModI64"                { return TOKEN_ModI64; }
 "Call"                  { return TOKEN_Call; }
 "PrintTopStackI64"      { return TOKEN_PrintTopStackI64; }
+"PushLiteralString"     { return TOKEN_PushLiteralString; }
+"ConcatStrings"         { return TOKEN_ConcatStrings; }
+"PrintString"           { return TOKEN_PrintString; }
 "Exit"                  { return TOKEN_Exit; }
 
 %%
@@ -68,6 +72,11 @@ Token read_token(void) {
         fprintf(stderr, "Token too long: %s\n", yytext);
         token.type = TOKEN_EOF;
         token.value[0] = '\0';
+        return token;
+    }
+    if (token.type == TOKEN_STRING) {
+        strncpy(token.value, yytext + 1, yyleng - 2);
+        token.value[strlen(yytext) - 2] = '\0';
         return token;
     }
     strcpy(token.value, yytext);

@@ -1,6 +1,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <limits.h>
+#include <string.h>
 #include "assembler/assembler.h"
 #include "assembler/lexer.h"
 #include "utils/memory.h"
@@ -167,6 +168,18 @@ read_literal_number()
 	return token;
 }
 
+static Token
+read_literal_string()
+{
+	Token token;
+	token = read_token();
+	if (token.type != TOKEN_STRING) {
+		fprintf(stderr, "Expected string, got %s\n", token.value);
+		exit(EXIT_FAILURE);
+	}
+	return token;
+}
+
 static void
 read_ri(Instruction *instruction) {
 	Token token;
@@ -296,6 +309,18 @@ read_instruction(Instruction *instruction)
 		break;
 	case TOKEN_PrintTopStackI64:
 		instruction->op = OP_PRINT_TOP_STACK_I64;
+		break;
+	case TOKEN_PushLiteralString:
+		instruction->op = OP_PUSH_LITERAL_STRING;
+		token = read_literal_string();
+		instruction->data.string.ptr = strdup(token.value);
+		instruction->data.string.size = strlen(token.value);
+		break;
+	case TOKEN_ConcatStrings:
+		instruction->op = OP_CONCAT_STRINGS;
+		break;
+	case TOKEN_PrintString:
+		instruction->op = OP_PRINT_STRING;
 		break;
 	case TOKEN_Exit:
 		instruction->op = OP_EXIT;

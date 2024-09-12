@@ -91,6 +91,15 @@ instruction_as_string(Instruction instruction, char *string, size_t max_length)
 	case OP_PRINT_TOP_STACK_I64:
 		snprintf(string, max_length, "PRINT_TOP_STACK_I64");
 		break;
+	case OP_PUSH_LITERAL_STRING:
+		snprintf(string, max_length, "PUSH_LITERAL_STRING \"%s\"", instruction.data.string);
+		break;
+	case OP_CONCAT_STRINGS:
+		snprintf(string, max_length, "CONCAT_STRINGS");
+		break;
+	case OP_PRINT_STRING:
+		snprintf(string, max_length, "PRINT_STRING");
+		break;
 	default:
 		snprintf(string, max_length, "UNKNOWN");
 		break;
