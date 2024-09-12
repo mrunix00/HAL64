@@ -137,51 +137,27 @@ read_param(TokenType prefix_type, char prefix)
 	}
 	return token;
 }
+#define read_index() read_param(TOKEN_DOLARSIGN, '$')
+#define read_instruction_index() read_param(TOKEN_HASHTAG, '#')
+#define read_function_index() read_param(TOKEN_COLON, ':')
 
 static Token
-read_index()
-{
-	return read_param(TOKEN_DOLARSIGN, '$');
-}
-
-static Token
-read_instruction_index()
-{
-	return read_param(TOKEN_HASHTAG, '#');
-}
-
-static Token
-read_function_index()
-{
-	return read_param(TOKEN_COLON, ':');
-}
-
-static Token
-read_literal_number()
+read_type(TokenType type, const char *typeName)
 {
 	Token token;
 	token = read_token();
-	if (token.type != TOKEN_NUMBER) {
-		fprintf(stderr, "Expected number, got %s\n", token.value);
+	if (token.type != type) {
+		fprintf(stderr, "Expected %s, got %s\n", typeName, token.value);
 		exit(EXIT_FAILURE);
 	}
 	return token;
 }
-
-static Token
-read_literal_string()
-{
-	Token token;
-	token = read_token();
-	if (token.type != TOKEN_STRING) {
-		fprintf(stderr, "Expected string, got %s\n", token.value);
-		exit(EXIT_FAILURE);
-	}
-	return token;
-}
+#define read_literal_number() read_type(TOKEN_NUMBER, "number")
+#define read_literal_string() read_type(TOKEN_STRING, "string")
 
 static void
-read_ri(Instruction *instruction) {
+read_ri(Instruction *instruction)
+{
 	Token token;
 	token = read_index();
 	instruction->data.ri.reg = strtoll(token.value, NULL, 10);
@@ -197,6 +173,35 @@ read_ri(Instruction *instruction) {
 	}
 }
 
+#define NO_PARAM_INSTRUCTION(TOKEN, OP) \
+    case TOKEN: \
+        instruction->op = OP; \
+        break;
+#define INDEX_PARAM_INSTRUCTION(TOKEN, OP) \
+    case TOKEN: \
+        instruction->op = OP; \
+        token = read_index(); \
+        instruction->data.reg = strtoll(token.value, NULL, 10); \
+        if (instruction->data.reg == LONG_MAX) { \
+            fprintf(stderr, "Invalid number: %s\n", token.value); \
+            exit(EXIT_FAILURE); \
+        } \
+        break;
+#define I64_PARAM_INSTRUCTION(TOKEN, OP) \
+    case TOKEN: \
+        instruction->op = OP; \
+        token = read_literal_number(); \
+        instruction->data.immediate = strtoll(token.value, NULL, 10); \
+        if (instruction->data.immediate == LONG_MAX) { \
+            fprintf(stderr, "Invalid number: %s\n", token.value); \
+            exit(EXIT_FAILURE); \
+        } \
+        break;
+#define RI_PARAM_INSTRUCTION(TOKEN, OP) \
+    case TOKEN: \
+        instruction->op = OP; \
+        read_ri(instruction); \
+        break;
 static hal64_error
 read_instruction(Instruction *instruction)
 {
@@ -206,97 +211,39 @@ read_instruction(Instruction *instruction)
 	switch (token.type) {
 	case TOKEN_CLOSE_BRACE:
 		return HAL64_END_OF_BODY;
-	case TOKEN_LoadLocalI64:
-		instruction->op = OP_LOAD_LOCAL_I64;
-		token = read_index();
+	INDEX_PARAM_INSTRUCTION(TOKEN_LoadLocalI64, OP_LOAD_LOCAL_I64)
+	I64_PARAM_INSTRUCTION(TOKEN_PushI64, OP_PUSH_I64)
+	RI_PARAM_INSTRUCTION(TOKEN_AddI64_RI, OP_ADD_I64_RI)
+	RI_PARAM_INSTRUCTION(TOKEN_SubI64_RI, OP_SUB_I64_RI)
+	RI_PARAM_INSTRUCTION(TOKEN_MulI64_RI, OP_MUL_I64_RI)
+	RI_PARAM_INSTRUCTION(TOKEN_DivI64_RI, OP_DIV_I64_RI)
+	RI_PARAM_INSTRUCTION(TOKEN_ModI64_RI, OP_MOD_I64_RI)
+	RI_PARAM_INSTRUCTION(TOKEN_LessThanI64_RI, OP_LESS_THAN_I64_RI)
+	RI_PARAM_INSTRUCTION(TOKEN_GreaterThanI64_RI, OP_GREATER_THAN_I64_RI)
+	RI_PARAM_INSTRUCTION(TOKEN_EqualsI64_RI, OP_EQUALS_I64_RI)
+	NO_PARAM_INSTRUCTION(TOKEN_AddI64, OP_ADD_I64)
+	NO_PARAM_INSTRUCTION(TOKEN_SubI64, OP_SUB_I64)
+	NO_PARAM_INSTRUCTION(TOKEN_MulI64, OP_MUL_I64)
+	NO_PARAM_INSTRUCTION(TOKEN_DivI64, OP_DIV_I64)
+	NO_PARAM_INSTRUCTION(TOKEN_ModI64, OP_MOD_I64)
+	NO_PARAM_INSTRUCTION(TOKEN_LessThanI64, OP_LESS_THAN_I64)
+	NO_PARAM_INSTRUCTION(TOKEN_GreaterThanI64, OP_GREATER_THAN_I64)
+	NO_PARAM_INSTRUCTION(TOKEN_EqualsI64, OP_EQUALS_I64)
+	NO_PARAM_INSTRUCTION(TOKEN_NotEqualsI64, OP_NOT_EQUALS_I64)
+	NO_PARAM_INSTRUCTION(TOKEN_Not, OP_NOT)
+	NO_PARAM_INSTRUCTION(TOKEN_Return, OP_RETURN)
+	NO_PARAM_INSTRUCTION(TOKEN_PrintTopStackI64, OP_PRINT_TOP_STACK_I64)
+	NO_PARAM_INSTRUCTION(TOKEN_PrintString, OP_PRINT_STRING)
+	NO_PARAM_INSTRUCTION(TOKEN_ConcatStrings, OP_CONCAT_STRINGS)
+	NO_PARAM_INSTRUCTION(TOKEN_Exit, OP_EXIT)
+	case TOKEN_JumpIfFalse:
+		instruction->op = OP_JUMP_IF_FALSE;
+		token = read_instruction_index();
 		instruction->data.reg = strtoll(token.value, NULL, 10);
 		if (instruction->data.reg == LONG_MAX) {
 			fprintf(stderr, "Invalid number: %s\n", token.value);
 			exit(EXIT_FAILURE);
 		}
-		break;
-	case TOKEN_PushI64:
-		instruction->op = OP_PUSH_I64;
-		token = read_literal_number();
-		instruction->data.immediate = strtoll(token.value, NULL, 10);
-		if (instruction->data.immediate == LONG_MAX) {
-			fprintf(stderr, "Invalid number: %s\n", token.value);
-			exit(EXIT_FAILURE);
-		}
-		break;
-	case TOKEN_LessThanI64_RI:
-		instruction->op = OP_LESS_THAN_I64_RI;
-		read_ri(instruction);
-		break;
-	case TOKEN_LessThanI64:
-		instruction->op = OP_LESS_THAN_I64;
-		break;
-	case TOKEN_GreaterThanI64_RI:
-		instruction->op = OP_GREATER_THAN_I64_RI;
-		read_ri(instruction);
-		break;
-	case TOKEN_GreaterThanI64:
-		instruction->op = OP_GREATER_THAN_I64;
-		break;
-	case TOKEN_EqualsI64_RI:
-		instruction->op = OP_EQUALS_I64_RI;
-		read_ri(instruction);
-		break;
-	case TOKEN_EqualsI64:
-		instruction->op = OP_EQUALS_I64;
-		break;
-	case TOKEN_NotEqualsI64:
-		instruction->op = OP_NOT_EQUALS_I64;
-		break;
-	case TOKEN_Not:
-		instruction->op = OP_NOT;
-		break;
-	case TOKEN_JumpIfFalse:
-		instruction->op = OP_JUMP_IF_FALSE;
-		token = read_instruction_index();
-		instruction->data.reg= strtoll(token.value, NULL, 10);
-		if (instruction->data.reg == LONG_MAX) {
-			fprintf(stderr, "Invalid number: %s\n", token.value);
-			exit(EXIT_FAILURE);
-		}
-		break;
-	case TOKEN_Return:
-		instruction->op = OP_RETURN;
-		break;
-	case TOKEN_AddI64_RI:
-		instruction->op = OP_ADD_I64_RI;
-		read_ri(instruction);
-		break;
-	case TOKEN_AddI64:
-		instruction->op = OP_ADD_I64;
-		break;
-	case TOKEN_SubI64_RI:
-		instruction->op = OP_SUB_I64_RI;
-		read_ri(instruction);
-		break;
-	case TOKEN_SubI64:
-		instruction->op = OP_SUB_I64;
-		break;
-	case TOKEN_MulI64_RI:
-		instruction->op = OP_MUL_I64_RI;
-		read_ri(instruction);
-		break;
-	case TOKEN_MulI64:
-		instruction->op = OP_MUL_I64;
-		break;
-	case TOKEN_DivI64_RI:
-		instruction->op = OP_DIV_I64_RI;
-		read_ri(instruction);
-		break;
-	case TOKEN_DivI64:
-		instruction->op = OP_DIV_I64;
-		break;
-	case TOKEN_ModI64_RI:
-		instruction->op = OP_MOD_I64_RI;
-		read_ri(instruction);
-		break;
-	case TOKEN_ModI64:
-		instruction->op = OP_MOD_I64;
 		break;
 	case TOKEN_Call:
 		instruction->op = OP_CALL;
@@ -307,23 +254,11 @@ read_instruction(Instruction *instruction)
 			exit(EXIT_FAILURE);
 		}
 		break;
-	case TOKEN_PrintTopStackI64:
-		instruction->op = OP_PRINT_TOP_STACK_I64;
-		break;
 	case TOKEN_PushLiteralString:
 		instruction->op = OP_PUSH_LITERAL_STRING;
 		token = read_literal_string();
 		instruction->data.string.ptr = strdup(token.value);
 		instruction->data.string.size = strlen(token.value);
-		break;
-	case TOKEN_ConcatStrings:
-		instruction->op = OP_CONCAT_STRINGS;
-		break;
-	case TOKEN_PrintString:
-		instruction->op = OP_PRINT_STRING;
-		break;
-	case TOKEN_Exit:
-		instruction->op = OP_EXIT;
 		break;
 	default:
 		fprintf(stderr, "Invalid instruction: %s\n", token.value);
