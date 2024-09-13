@@ -4,12 +4,26 @@
 #include "hal64.h"
 #include "utils/memory.h"
 
+static void
+free_instructions(Instruction *instructions, size_t count)
+{
+	size_t i;
+	for (i = 0; i < count; i++) {
+		if (instructions[i].op == OP_PUSH_LITERAL_STRING)
+			free(instructions[i].data.string.ptr);
+	}
+}
+
 void
 free_program(Program program)
 {
 	size_t i;
-	for (i = 0; i < program.functions_count; i++)
+	for (i = 0; i < program.functions_count; i++) {
+		free_instructions(
+			program.functions[i].instructions,
+			program.functions[i].instructions_count);
 		free(program.functions[i].instructions);
+	}
 	free(program.functions);
 }
 

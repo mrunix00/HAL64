@@ -16,6 +16,7 @@ init_vm(void)
 	vm.operands_stack.capacity = 1024;
 	vm.pointers_stack.capacity = 1024;
 	vm.objects.capacity = 1024;
+	vm.allocated_heap_size = 0;
 	vm.call_stack.data = safe_malloc(vm.call_stack.capacity * sizeof(uint64_t));
 	vm.operands_stack.data = safe_malloc(vm.operands_stack.capacity * sizeof(uint64_t));
 	vm.pointers_stack.data = safe_malloc(vm.pointers_stack.capacity * sizeof(HeapObject *));
@@ -26,8 +27,15 @@ init_vm(void)
 void
 free_vm(VM vm)
 {
+	size_t i;
 	free(vm.call_stack.data);
 	free(vm.operands_stack.data);
+	free(vm.pointers_stack.data);
+	for (i = 0; i < vm.objects.size; i++) {
+		free(vm.objects.data[i]->data);
+		free(vm.objects.data[i]);
+	}
+	free(vm.objects.data);
 }
 
 static void
@@ -45,6 +53,7 @@ gc_sweep(VM *vm)
 	size_t i;
 	for (i = 0; i < vm->objects.size; i++) {
 		if (!vm->objects.data[i]->marked) {
+			vm->allocated_heap_size -= vm->objects.data[i]->size;
 			free(vm->objects.data[i]->data);
 			free(vm->objects.data[i]);
 			vm->objects.data[i] = vm->objects.data[vm->objects.size - 1];
