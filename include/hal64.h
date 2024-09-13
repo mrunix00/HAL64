@@ -3,6 +3,8 @@
 #include <stdint.h>
 #include <stddef.h>
 
+#define GC_LIMIT 0
+
 typedef enum
 {
 	OP_NOOP = 0,
@@ -88,14 +90,16 @@ typedef struct
 	void *data;
 } HeapObject;
 
-typedef struct {
+typedef struct
+{
 	uint64_t *data;
 	size_t size;
 	size_t capacity;
 } Array;
 
-typedef struct {
-	HeapObject *data;
+typedef struct
+{
+	HeapObject **data;
 	size_t size;
 	size_t capacity;
 } PointersArray;
