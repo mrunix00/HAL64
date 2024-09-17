@@ -4,7 +4,7 @@ project(HAL64 C)
 set(CMAKE_C_STANDARD 90)
 add_compile_options(-O0)
 set(LEXER_DIR "${CMAKE_CURRENT_BINARY_DIR}")
-set(LEXER_OUT "${LEXER_DIR}/lexer.c")
+set(LEXER_OUT "${PROJECT_SOURCE_DIR}/autogen/lexer.c")
 
 include_directories(include)
 include_directories(${CMAKE_CURRENT_BINARY_DIR})
