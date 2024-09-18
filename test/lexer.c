@@ -2,20 +2,22 @@
 #include "assembler/lexer.h"
 
 static Token list[128];
+
 static size_t number_of_tokens;
 
 void
-read_all_tokens(const char* source)
+read_all_tokens(const char *source)
 {
 	init_lexer(source);
 	do {
 		list[number_of_tokens++] = read_token();
-	} while (list[number_of_tokens - 1].type != TOKEN_EOF);
+	}
+	while (list[number_of_tokens - 1].type != TOKEN_EOF);
 	free_lexer();
 }
 
 void
-compare_tokens(const Token* expected, const Token* actual, size_t count)
+compare_tokens(const Token *expected, const Token *actual, size_t count)
 {
 	size_t i;
 	TEST_ASSERT_EQUAL(count, number_of_tokens);
@@ -39,12 +41,12 @@ tearDown(void)
 void
 header_separator(void)
 {
-	const char* source = "---";
+	const char *source = "---";
 	read_all_tokens(source);
 
 	Token expected[] = {
-		{ TOKEN_HEADER_SEPARATOR, "---" },
-		{ TOKEN_EOF, "" },
+		{TOKEN_HEADER_SEPARATOR, "---"},
+		{TOKEN_EOF, ""},
 	};
 	compare_tokens(expected, list, sizeof(expected) / sizeof(expected[0]));
 }
@@ -52,19 +54,19 @@ header_separator(void)
 void
 basic_keywords(void)
 {
-	const char* source =
+	const char *source =
 		"globals global_pointers args"
 		" ptr_args locals local_pointers";
 	read_all_tokens(source);
 
 	Token expected[] = {
-		{ TOKEN_GLOBALS, "globals" },
-		{ TOKEN_GLOBAL_POINTERS, "global_pointers" },
-		{ TOKEN_ARGS, "args" },
-		{ TOKEN_PTR_ARGS, "ptr_args" },
-		{ TOKEN_LOCALS, "locals" },
-		{ TOKEN_LOCAL_POINTERS, "local_pointers" },
-		{ TOKEN_EOF, "" },
+		{TOKEN_GLOBALS, "globals"},
+		{TOKEN_GLOBAL_POINTERS, "global_pointers"},
+		{TOKEN_ARGS, "args"},
+		{TOKEN_PTR_ARGS, "ptr_args"},
+		{TOKEN_LOCALS, "locals"},
+		{TOKEN_LOCAL_POINTERS, "local_pointers"},
+		{TOKEN_EOF, ""},
 	};
 	compare_tokens(expected, list, sizeof(expected) / sizeof(expected[0]));
 }
@@ -72,17 +74,17 @@ basic_keywords(void)
 void
 punctual_tokens(void)
 {
-	const char* source = ":;#${}";
+	const char *source = ":;#${}";
 	read_all_tokens(source);
 
 	Token expected[] = {
-		{ TOKEN_COLON, ":" },
-		{ TOKEN_SEMICOLON, ";" },
-		{ TOKEN_HASHTAG, "#" },
-		{ TOKEN_DOLARSIGN, "$" },
-		{ TOKEN_OPEN_BRACE, "{" },
-		{ TOKEN_CLOSE_BRACE, "}" },
-		{ TOKEN_EOF, "" },
+		{TOKEN_COLON, ":"},
+		{TOKEN_SEMICOLON, ";"},
+		{TOKEN_HASHTAG, "#"},
+		{TOKEN_DOLARSIGN, "$"},
+		{TOKEN_OPEN_BRACE, "{"},
+		{TOKEN_CLOSE_BRACE, "}"},
+		{TOKEN_EOF, ""},
 	};
 	compare_tokens(expected, list, sizeof(expected) / sizeof(expected[0]));
 }
@@ -90,7 +92,7 @@ punctual_tokens(void)
 void
 instructions(void)
 {
-	const char* source =
+	const char *source =
 		"LoadLocalI64 PushI64 LessThanI64_RI LessThanI64 GreaterThanI64_RI "
 		"GreaterThanI64 EqualsI64_RI EqualsI64 NotEqualsI64 NotI64 JumpIfFalse "
 		"Return AddI64_RI AddI64 SubI64_RI SubI64 MulI64_RI MulI64 DivI64_RI "
@@ -100,35 +102,35 @@ instructions(void)
 	read_all_tokens(source);
 
 	Token expected[] = {
-		{ TOKEN_LoadLocalI64, "LoadLocalI64" },
-		{ TOKEN_PushI64, "PushI64" },
-		{ TOKEN_LessThanI64_RI, "LessThanI64_RI" },
-		{ TOKEN_LessThanI64, "LessThanI64" },
-		{ TOKEN_GreaterThanI64_RI, "GreaterThanI64_RI" },
-		{ TOKEN_GreaterThanI64, "GreaterThanI64" },
-		{ TOKEN_EqualsI64_RI, "EqualsI64_RI" },
-		{ TOKEN_EqualsI64, "EqualsI64" },
-		{ TOKEN_NotEqualsI64, "NotEqualsI64" },
-		{ TOKEN_Not, "NotI64" },
-		{ TOKEN_JumpIfFalse, "JumpIfFalse" },
-		{ TOKEN_Return, "Return" },
-		{ TOKEN_AddI64_RI, "AddI64_RI" },
-		{ TOKEN_AddI64, "AddI64" },
-		{ TOKEN_SubI64_RI, "SubI64_RI" },
-		{ TOKEN_SubI64, "SubI64" },
-		{ TOKEN_MulI64_RI, "MulI64_RI" },
-		{ TOKEN_MulI64, "MulI64" },
-		{ TOKEN_DivI64_RI, "DivI64_RI" },
-		{ TOKEN_DivI64, "DivI64" },
-		{ TOKEN_ModI64_RI, "ModI64_RI" },
-		{ TOKEN_ModI64, "ModI64" },
-		{ TOKEN_Call, "Call" },
-		{ TOKEN_PrintTopStackI64, "PrintTopStackI64" },
-		{ TOKEN_PushLiteralString, "PushLiteralString" },
-		{ TOKEN_ConcatStrings, "ConcatStrings" },
-		{ TOKEN_PrintString, "PrintString" },
-		{ TOKEN_Exit, "Exit" },
-		{ TOKEN_EOF, "" },
+		{TOKEN_LoadLocalI64, "LoadLocalI64"},
+		{TOKEN_PushI64, "PushI64"},
+		{TOKEN_LessThanI64_RI, "LessThanI64_RI"},
+		{TOKEN_LessThanI64, "LessThanI64"},
+		{TOKEN_GreaterThanI64_RI, "GreaterThanI64_RI"},
+		{TOKEN_GreaterThanI64, "GreaterThanI64"},
+		{TOKEN_EqualsI64_RI, "EqualsI64_RI"},
+		{TOKEN_EqualsI64, "EqualsI64"},
+		{TOKEN_NotEqualsI64, "NotEqualsI64"},
+		{TOKEN_Not, "NotI64"},
+		{TOKEN_JumpIfFalse, "JumpIfFalse"},
+		{TOKEN_Return, "Return"},
+		{TOKEN_AddI64_RI, "AddI64_RI"},
+		{TOKEN_AddI64, "AddI64"},
+		{TOKEN_SubI64_RI, "SubI64_RI"},
+		{TOKEN_SubI64, "SubI64"},
+		{TOKEN_MulI64_RI, "MulI64_RI"},
+		{TOKEN_MulI64, "MulI64"},
+		{TOKEN_DivI64_RI, "DivI64_RI"},
+		{TOKEN_DivI64, "DivI64"},
+		{TOKEN_ModI64_RI, "ModI64_RI"},
+		{TOKEN_ModI64, "ModI64"},
+		{TOKEN_Call, "Call"},
+		{TOKEN_PrintTopStackI64, "PrintTopStackI64"},
+		{TOKEN_PushLiteralString, "PushLiteralString"},
+		{TOKEN_ConcatStrings, "ConcatStrings"},
+		{TOKEN_PrintString, "PrintString"},
+		{TOKEN_Exit, "Exit"},
+		{TOKEN_EOF, ""},
 	};
 
 	compare_tokens(expected, list, sizeof(expected) / sizeof(expected[0]));
