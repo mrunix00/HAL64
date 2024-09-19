@@ -20,4 +20,4 @@ jobs:
     - name: build the app
       run: mkdir build && cd build && cmake .. && cmake --build .
     - name: test
-      run: ./build/TESTS_LEXER
+      run: ./build/TESTS_LEXER && ./build/TESTS_ASSEMBLER

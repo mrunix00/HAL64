@@ -16,6 +16,8 @@ flex_target(lexer src/lexer.l "${LEXER_OUT}" DEFINES_FILE ${LEXER_DIR}/lexer.h)
 
 file(GLOB_RECURSE SOURCE "src/*.c")
 file(GLOB UNITY_SOURCE "libs/Unity/src/unity.c")
+set(TEST_UTILS ${UNITY_SOURCE} ${SOURCE} ${LEXER_OUT} )
 
 add_executable(HAL64 main.c ${SOURCE} ${LEXER_OUT})
-add_executable(TESTS_LEXER test/lexer.c ${UNITY_SOURCE} ${SOURCE} ${LEXER_OUT})
+add_executable(TESTS_LEXER test/lexer.c ${TEST_UTILS})
+add_executable(TESTS_ASSEMBLER test/assembler.c ${TEST_UTILS})
