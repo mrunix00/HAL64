@@ -1,0 +1,11 @@
+---
+globals: 0
+global_pointers: 0
+---
+:0 { args: 0 ptr_args: 0 locals: 0 local_pointers: 0 } {
+    PushLiteralString "Hello,";
+    PushLiteralString " World!";
+    ConcatStrings;
+    PrintString;
+    Exit;
+}
