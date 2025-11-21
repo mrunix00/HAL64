@@ -6,6 +6,7 @@
 #include <assembler/assembler.h>
 #include <assembler/lexer.h>
 #include <assembler/reader.h>
+#include <hal64.h>
 #include <stdio.h>
 #include <stdlib.h>
 
@@ -20,7 +21,7 @@ int main(int argc, char **argv)
 		fprintf(stderr, "Failed to open file\n");
 		return EXIT_FAILURE;
 	}
-	Program program = assemble(reader);
+	program_t program = assemble(reader);
 	execute_program(program);
 	free_lexer();
 	free_program(program);

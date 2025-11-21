@@ -3,6 +3,7 @@
  * SPDX-License-Identifier: GPL-3.0
  */
 
+#include "hal64.h"
 #include <assembler/assembler.h>
 #include <assembler/lexer.h>
 #include <assembler/reader.h>
@@ -25,10 +26,10 @@
 		exit(EXIT_FAILURE);                                        \
 	}
 
-static Program
+static program_t
 read_header()
 {
-	Program program = init_program();
+	program_t program = init_program();
 	Token token = read_token();
 
 	if (token.type != TOKEN_HEADER_SEPARATOR) {
@@ -70,7 +71,7 @@ read_header()
 }
 
 static void
-read_function_info(Function *function)
+read_function_info(function_t *function)
 {
 	Token token;
 
@@ -162,7 +163,7 @@ read_type(TokenType type, const char *typeName)
 #define read_literal_string() read_type(TOKEN_STRING, "string")
 
 static void
-read_ri(Instruction *instruction)
+read_ri(instruction_t *instruction)
 {
 	Token token;
 	token = read_index();
@@ -209,7 +210,7 @@ read_ri(Instruction *instruction)
 		read_ri(instruction);           \
 		break;
 static hal64_error
-read_instruction(Instruction *instruction)
+read_instruction(instruction_t *instruction)
 {
 	Token token;
 
@@ -282,10 +283,10 @@ read_instruction(Instruction *instruction)
 }
 
 static void
-read_function_body(Function *function)
+read_function_body(function_t *function)
 {
 	Token token;
-	Instruction instruction;
+	instruction_t instruction;
 	hal64_error error;
 
 	token = read_token();// read an open brace
@@ -303,7 +304,7 @@ read_function_body(Function *function)
 }
 
 static hal64_error
-read_function(Function *function)
+read_function(function_t *function)
 {
 	Token token;
 
@@ -332,11 +333,11 @@ read_function(Function *function)
 	return HAL64_OK;
 }
 
-Program
+program_t
 assemble(reader_t reader)
 {
-	Program program;
-	Function function;
+	program_t program;
+	function_t function;
 	hal64_error error;
 
 	init_lexer(reader);

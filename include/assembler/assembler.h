@@ -10,7 +10,6 @@
 #include <hal64.h>
 #include <stddef.h>
 
-Program
-assemble(reader_t reader);
+program_t assemble(reader_t reader);
 
 #endif

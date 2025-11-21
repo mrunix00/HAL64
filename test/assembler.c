@@ -1,6 +1,7 @@
 #include "string_reader.h"
 #include <assembler/assembler.h>
 #include <assembler/reader.h>
+#include <hal64.h>
 #include <unity.h>
 
 void setUp(void)
@@ -9,7 +10,7 @@ void setUp(void)
 void tearDown(void)
 {}
 
-void compare_instructions(Instruction *expected, Instruction *actual, size_t count)
+void compare_instructions(instruction_t *expected, instruction_t *actual, size_t count)
 {
 	size_t i;
 	for (i = 0; i < count; i++) {
@@ -36,7 +37,7 @@ void parse_header(void)
 		"---";
 
 	reader_t reader = reader_from_string(source);
-	Program program = assemble(reader);
+	program_t program = assemble(reader);
 
 	TEST_ASSERT_EQUAL(69, program.globals_count);
 	TEST_ASSERT_EQUAL(420, program.global_pointers_count);
@@ -60,8 +61,8 @@ void parse_function(void)
 		"}\n";
 
 	reader_t reader = reader_from_string(source);
-	Program program = assemble(reader);
-	Instruction expected[] = {
+	program_t program = assemble(reader);
+	instruction_t expected[] = {
 		{.op = OP_PUSH_I64, .data.immediate = 30},
 		{.op = OP_PUSH_I64, .data.immediate = 12},
 		{.op = OP_ADD_I64},

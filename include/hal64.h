@@ -11,6 +11,14 @@
 
 #define GC_LIMIT 0
 
+typedef struct
+{
+	size_t stackframe_size;
+	size_t current_instruction;
+	size_t current_function;
+	uint64_t *locals;
+} callstack_header_t;
+
 typedef enum
 {
 	OP_NOOP = 0,
@@ -42,11 +50,11 @@ typedef enum
 	OP_CONCAT_STRINGS,
 	OP_PRINT_STRING,
 	OP_EXIT,
-} InstructionOp;
+} opcode_t;
 
 typedef struct
 {
-	InstructionOp op;
+	opcode_t op;
 	union
 	{
 		uint64_t immediate;
@@ -67,11 +75,11 @@ typedef struct
 			size_t size;
 		} string;
 	} data;
-} Instruction;
+} instruction_t;
 
 typedef struct
 {
-	Instruction *instructions;
+	instruction_t *instructions;
 	size_t id;
 	size_t args_count;
 	size_t ptr_args_count;
@@ -79,59 +87,58 @@ typedef struct
 	size_t local_pointers_count;
 	size_t instructions_count;
 	size_t stack_frame_size;
-} Function;
+} function_t;
 
 typedef struct
 {
 	size_t globals_count;
 	size_t global_pointers_count;
 	size_t functions_count;
-	Function *functions;
-} Program;
+	function_t *functions;
+} program_t;
 
 typedef struct
 {
 	uint8_t marked;
 	size_t size;
 	void *data;
-} HeapObject;
+} heap_object_t;
 
 typedef struct
 {
 	uint64_t *data;
 	size_t size;
 	size_t capacity;
-} Array;
+} array_t;
 
 typedef struct
 {
-	HeapObject **data;
+	heap_object_t **data;
 	size_t size;
 	size_t capacity;
-} PointersArray;
+} pointers_array_t;
 
 typedef struct
 {
-	Array call_stack;
-	Array operands_stack;
-	PointersArray pointers_stack;
-	PointersArray objects;
-	uint64_t *locals;
+	array_t call_stack;
+	array_t operands_stack;
+	pointers_array_t pointers_stack;
+	pointers_array_t objects;
 	size_t allocated_heap_size;
-} VM;
+} vm_t;
 
-Program init_program(void);
-Function init_function(void);
-void emit_function(Program *program, Function function);
-void emit_instruction(Function *function, Instruction instruction);
+program_t init_program(void);
+function_t init_function(void);
+void emit_function(program_t *program, function_t function);
+void emit_instruction(function_t *function, instruction_t instruction);
 
-void free_program(Program program);
-void print_program(Program program);
+void free_program(program_t program);
+void print_program(program_t program);
 
-void instruction_as_string(Instruction instruction, char *s, size_t max_length);
+void instruction_as_string(instruction_t instruction, char *s, size_t max_length);
 
-VM init_vm(void);
-void free_vm(VM vm);
-void execute_program(Program program);
+vm_t init_vm(void);
+void free_vm(vm_t vm);
+void execute_program(program_t program);
 
 #endif

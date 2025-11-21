@@ -10,7 +10,7 @@
 #include <utils/memory.h>
 
 static void
-free_instructions(Instruction *instructions, size_t count)
+free_instructions(instruction_t *instructions, size_t count)
 {
 	size_t i;
 	for (i = 0; i < count; i++) {
@@ -19,7 +19,7 @@ free_instructions(Instruction *instructions, size_t count)
 	}
 }
 
-void free_program(Program program)
+void free_program(program_t program)
 {
 	size_t i;
 	for (i = 0; i < program.functions_count; i++) {
@@ -32,7 +32,7 @@ void free_program(Program program)
 }
 
 static void
-print_header(Program program)
+print_header(program_t program)
 {
 	printf("============= Header =============\n");
 	printf("Number of global variables: %zu\n", program.globals_count);
@@ -42,7 +42,7 @@ print_header(Program program)
 }
 
 static void
-print_function(Function function)
+print_function(function_t function)
 {
 	size_t i;
 	char *s = safe_malloc(256);
@@ -62,7 +62,7 @@ print_function(Function function)
 	printf("\n");
 }
 
-void instruction_as_string(Instruction instruction, char *string, size_t max_length)
+void instruction_as_string(instruction_t instruction, char *string, size_t max_length)
 {
 	switch (instruction.op) {
 	case OP_NOOP:
@@ -123,7 +123,7 @@ void instruction_as_string(Instruction instruction, char *string, size_t max_len
 	}
 }
 
-void print_program(Program program)
+void print_program(program_t program)
 {
 	print_header(program);
 	size_t i;
@@ -131,37 +131,37 @@ void print_program(Program program)
 		print_function(program.functions[i]);
 }
 
-Program
+program_t
 init_program(void)
 {
-	Program program;
-	memset(&program, 0, sizeof(Program));
+	program_t program;
+	memset(&program, 0, sizeof(program_t));
 	return program;
 }
 
-Function
+function_t
 init_function()
 {
-	Function function;
-	memset(&function, 0, sizeof(Function));
+	function_t function;
+	memset(&function, 0, sizeof(function_t));
 	return function;
 }
 
-void emit_function(Program *program, Function function)
+void emit_function(program_t *program, function_t function)
 {
 	if (function.id >= program->functions_count) {
 		program->functions_count = function.id + 1;
-		program->functions = safe_realloc(program->functions, (program->functions_count + 1) * sizeof(Function));
+		program->functions = safe_realloc(program->functions, (program->functions_count + 1) * sizeof(function_t));
 	}
 	program->functions[function.id] = function;
 	program->functions[function.id].stack_frame_size =
-		function.locals_count + function.local_pointers_count + 3;
+		function.locals_count + function.local_pointers_count + sizeof(callstack_header_t);
 }
 
-void emit_instruction(Function *function, Instruction instruction)
+void emit_instruction(function_t *function, instruction_t instruction)
 {
 	function->instructions =
-		safe_realloc(function->instructions, (function->instructions_count + 1) * sizeof(Instruction));
+		safe_realloc(function->instructions, (function->instructions_count + 1) * sizeof(instruction_t));
 	function->instructions[function->instructions_count] = instruction;
 	function->instructions_count++;
 }

@@ -6,25 +6,19 @@
 #include <memory.h>
 #include <stdio.h>
 #include <stdlib.h>
+#include <assert.h>
 
 void *safe_malloc(size_t size)
 {
-	if (size == 0)
-		return NULL;
+	assert(size != 0);
 	void *buff = malloc(size);
-	if (buff == NULL) {
-		fprintf(stderr, "[-] Memory allocation failure!");
-		exit(EXIT_FAILURE);
-	}
+	assert(buff != NULL);
 	return buff;
 }
 
 void *safe_realloc(void *buff, size_t size)
 {
 	void *tmp_buff = realloc(buff, size);
-	if (tmp_buff == NULL) {
-		fprintf(stderr, "[-] Memory allocation failure!");
-		exit(EXIT_FAILURE);
-	}
+	assert(tmp_buff != NULL);
 	return tmp_buff;
 }

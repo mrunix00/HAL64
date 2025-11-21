@@ -3,11 +3,14 @@
  * SPDX-License-Identifier: GPL-3.0
  */
 
+#include <assert.h>
 #include <hal64.h>
+#include <stdint.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 #include <utils/memory.h>
+#include <utils/others.h>
 
 #define NEXT() \
 	instr++;   \
@@ -16,9 +19,9 @@
 	instr = (target); \
 	goto *dispatch_table[instr->op];
 
-VM init_vm(void)
+vm_t init_vm(void)
 {
-	VM vm;
+	vm_t vm;
 	vm.call_stack.size = 0;
 	vm.operands_stack.size = 0;
 	vm.pointers_stack.size = 0;
@@ -30,12 +33,12 @@ VM init_vm(void)
 	vm.allocated_heap_size = 0;
 	vm.call_stack.data = safe_malloc(vm.call_stack.capacity * sizeof(uint64_t));
 	vm.operands_stack.data = safe_malloc(vm.operands_stack.capacity * sizeof(uint64_t));
-	vm.pointers_stack.data = safe_malloc(vm.pointers_stack.capacity * sizeof(HeapObject *));
-	vm.objects.data = safe_malloc(vm.objects.capacity * sizeof(HeapObject));
+	vm.pointers_stack.data = safe_malloc(vm.pointers_stack.capacity * sizeof(heap_object_t *));
+	vm.objects.data = safe_malloc(vm.objects.capacity * sizeof(heap_object_t));
 	return vm;
 }
 
-void free_vm(VM vm)
+void free_vm(vm_t vm)
 {
 	size_t i;
 	free(vm.call_stack.data);
@@ -49,7 +52,7 @@ void free_vm(VM vm)
 }
 
 static void
-gc_mark_all(VM *vm)
+gc_mark_all(vm_t *vm)
 {
 	size_t i;
 	for (i = 0; i < vm->pointers_stack.size; i++)
@@ -58,7 +61,7 @@ gc_mark_all(VM *vm)
 }
 
 static void
-gc_sweep(VM *vm)
+gc_sweep(vm_t *vm)
 {
 	size_t i;
 	for (i = 0; i < vm->objects.size; i++) {
@@ -76,10 +79,10 @@ gc_sweep(VM *vm)
 	}
 }
 
-static HeapObject *
+static heap_object_t *
 new_heap_object(size_t size)
 {
-	HeapObject *object = safe_malloc(sizeof(HeapObject));
+	heap_object_t *object = safe_malloc(sizeof(heap_object_t));
 	object->size = size;
 	object->data = safe_malloc(size);
 	object->marked = 0;
@@ -87,24 +90,24 @@ new_heap_object(size_t size)
 }
 
 static void
-add_heap_object(VM *vm, HeapObject *object)
+add_heap_object(vm_t *vm, heap_object_t *object)
 {
-	if (vm->objects.size >= vm->objects.capacity) {
+	if (unlikely(vm->objects.size >= vm->objects.capacity)) {
 		vm->objects.capacity *= 2;
-		vm->objects.data = safe_realloc(vm->objects.data, vm->objects.capacity * sizeof(HeapObject));
+		vm->objects.data = safe_realloc(vm->objects.data, vm->objects.capacity * sizeof(heap_object_t));
 	}
 	vm->objects.data[vm->objects.size++] = object;
 	vm->allocated_heap_size += object->size;
-	if (vm->allocated_heap_size > GC_LIMIT) {
+	if (unlikely(vm->allocated_heap_size > GC_LIMIT)) {
 		gc_mark_all(vm);
 		gc_sweep(vm);
 	}
 }
 
 static void
-push_stack(VM *vm, uint64_t value)
+push_stack(vm_t *vm, uint64_t value)
 {
-	if (vm->operands_stack.size >= vm->operands_stack.capacity) {
+	if (unlikely(vm->operands_stack.size >= vm->operands_stack.capacity)) {
 		vm->operands_stack.capacity *= 2;
 		vm->operands_stack.data = safe_realloc(vm->operands_stack.data, vm->operands_stack.capacity * sizeof(uint64_t));
 	}
@@ -112,9 +115,9 @@ push_stack(VM *vm, uint64_t value)
 }
 
 static void
-push_pointer_stack(VM *vm, HeapObject *value)
+push_pointer_stack(vm_t *vm, heap_object_t *value)
 {
-	if (vm->pointers_stack.size >= vm->pointers_stack.capacity) {
+	if (unlikely(vm->pointers_stack.size >= vm->pointers_stack.capacity)) {
 		vm->pointers_stack.capacity *= 2;
 		vm->pointers_stack.data =
 			safe_realloc(vm->pointers_stack.data, vm->pointers_stack.capacity * sizeof(uint64_t *));
@@ -123,63 +126,92 @@ push_pointer_stack(VM *vm, HeapObject *value)
 }
 
 static uint64_t
-pop_stack(VM *vm)
+pop_stack(vm_t *vm)
 {
+    assert(vm->operands_stack.size > 0);
 	return vm->operands_stack.data[--vm->operands_stack.size];
 }
 
-static HeapObject *
-pop_pointer_stack(VM *vm)
+static heap_object_t *
+pop_pointer_stack(vm_t *vm)
 {
+    assert(vm->pointers_stack.size > 0);
 	return vm->pointers_stack.data[--vm->pointers_stack.size];
 }
 
+
+static inline callstack_header_t *
+get_current_callstack(vm_t *vm)
+{
+	uint8_t *base = (uint8_t *)vm->call_stack.data;
+	size_t used_bytes = vm->call_stack.size * sizeof(uint64_t);
+	return (callstack_header_t *)(base + used_bytes - sizeof(callstack_header_t));
+}
+
 static size_t
-get_stack_frame_size(VM *vm)
+get_stack_frame_size(vm_t *vm)
 {
-	return vm->call_stack.data[vm->call_stack.size - 1];
+	return get_current_callstack(vm)->stackframe_size;
+}
+
+static inline uint64_t *
+get_locals(vm_t *vm)
+{
+	return get_current_callstack(vm)->locals;
 }
 
 static void
-pop_stack_frame(VM *vm)
+pop_stack_frame(vm_t *vm)
 {
-	vm->call_stack.size -= get_stack_frame_size(vm);
-	vm->locals = vm->call_stack.data + vm->call_stack.size - get_stack_frame_size(vm);
+	size_t frame_size = get_stack_frame_size(vm);
+	vm->call_stack.size -= frame_size;
 }
 
 static void
-call_function(VM *vm, const Program *program, size_t current_function, size_t current_instruction, size_t next_function)
+call_function(vm_t *vm, const program_t *program, size_t current_function, size_t current_instruction, size_t next_function)
 {
-	uint64_t i;
-	Function function = program->functions[next_function];
+	function_t function = program->functions[next_function];
+	size_t arg_index;
 
-	if (vm->call_stack.size + function.stack_frame_size >= vm->call_stack.capacity) {
+	if (unlikely(vm->call_stack.size + function.stack_frame_size >= vm->call_stack.capacity)) {
 		vm->call_stack.capacity *= 2;
 		vm->call_stack.data = safe_realloc(vm->call_stack.data, vm->call_stack.capacity * sizeof(uint64_t));
 	}
 
-	vm->locals = vm->call_stack.data + vm->call_stack.size;
+	const size_t frame_start = vm->call_stack.size;
 	vm->call_stack.size += function.stack_frame_size;
-	vm->call_stack.data[vm->call_stack.size - 1] = function.stack_frame_size;
-	vm->call_stack.data[vm->call_stack.size - 2] = current_instruction;
-	vm->call_stack.data[vm->call_stack.size - 3] = current_function;
+	callstack_header_t *callstack = get_current_callstack(vm);
+	*callstack = (callstack_header_t){
+		.stackframe_size = function.stack_frame_size,
+		.current_instruction = current_instruction,
+		.current_function = current_function,
+		.locals = vm->call_stack.data + frame_start,
+	};
 
-	for (i = function.args_count - 1; i != -1; i--)
-		vm->locals[i] = pop_stack(vm);
+	uint64_t *locals = callstack->locals;
+
+	for (arg_index = 0; arg_index < function.args_count; arg_index++) {
+		size_t local_slot = function.args_count - arg_index - 1;
+		locals[local_slot] = pop_stack(vm);
+	}
 }
 
-void execute_program(Program program)
+void execute_program(program_t program)
 {
-	VM vm = init_vm();
+	vm_t vm = init_vm();
 	char buff[256];
-	Function *func = program.functions;
-	Instruction *instr;
+	function_t *func = program.functions;
+	instruction_t *instr;
 
 	vm.call_stack.size = func->stack_frame_size;
-	vm.locals = vm.call_stack.data;
-	vm.call_stack.data[vm.call_stack.size - 1] = vm.call_stack.size;
-	vm.call_stack.data[vm.call_stack.size - 2] = 0;
-	vm.call_stack.data[vm.call_stack.size - 3] = 0;
+	callstack_header_t *root_frame = get_current_callstack(&vm);
+	*root_frame = (callstack_header_t){
+		.stackframe_size = vm.call_stack.size,
+		.current_instruction = 0,
+		.current_function = 0,
+		.locals = vm.call_stack.data,
+	};
+
 	static void *dispatch_table[] = {
 		&&op_noop,
 		&&op_load_local_i64,
@@ -218,7 +250,7 @@ op_noop:
 	NEXT();
 
 op_load_local_i64:
-	push_stack(&vm, vm.locals[instr->data.reg]);
+	push_stack(&vm, get_locals(&vm)[instr->data.reg]);
 	NEXT();
 
 op_push_i64:
@@ -226,7 +258,7 @@ op_push_i64:
 	NEXT();
 
 op_less_than_i64_ri:
-	push_stack(&vm, vm.locals[instr->data.ri.reg] < instr->data.ri.immediate);
+	push_stack(&vm, get_locals(&vm)[instr->data.ri.reg] < instr->data.ri.immediate);
 	NEXT();
 
 op_less_than_i64:
@@ -257,8 +289,8 @@ op_jump_if_false:
 	NEXT();
 
 op_return: {
-	size_t return_function = vm.call_stack.data[vm.call_stack.size - 3];
-	size_t return_instruction = vm.call_stack.data[vm.call_stack.size - 2];
+	size_t return_function = get_current_callstack(&vm)->current_function;
+	size_t return_instruction = get_current_callstack(&vm)->current_instruction;
 	func = program.functions + return_function;
 	instr = func->instructions + return_instruction;
 	pop_stack_frame(&vm);
@@ -266,7 +298,7 @@ op_return: {
 }
 
 op_add_i64_ri:
-	push_stack(&vm, vm.locals[instr->data.ri.reg] + instr->data.ri.immediate);
+	push_stack(&vm, get_locals(&vm)[instr->data.ri.reg] + instr->data.ri.immediate);
 	NEXT();
 
 op_add_i64:
@@ -274,7 +306,7 @@ op_add_i64:
 	NEXT();
 
 op_sub_i64_ri:
-	push_stack(&vm, vm.locals[instr->data.ri.reg] - instr->data.ri.immediate);
+	push_stack(&vm, get_locals(&vm)[instr->data.ri.reg] - instr->data.ri.immediate);
 	NEXT();
 
 op_sub_i64: {
@@ -317,7 +349,7 @@ op_print_top_stack_i64:
 	NEXT();
 
 op_push_literal_string: {
-	HeapObject *object = new_heap_object(instr->data.string.size);
+	heap_object_t *object = new_heap_object(instr->data.string.size);
 	memcpy(object->data, instr->data.string.ptr, instr->data.string.size);
 	push_pointer_stack(&vm, object);
 	add_heap_object(&vm, object);
@@ -325,9 +357,9 @@ op_push_literal_string: {
 	NEXT();
 
 op_concat_strings: {
-	HeapObject *b = pop_pointer_stack(&vm);
-	HeapObject *a = pop_pointer_stack(&vm);
-	HeapObject *object = new_heap_object(a->size + b->size);
+	heap_object_t *b = pop_pointer_stack(&vm);
+	heap_object_t *a = pop_pointer_stack(&vm);
+	heap_object_t *object = new_heap_object(a->size + b->size);
 	memcpy(object->data, a->data, a->size);
 	memcpy(object->data + a->size, b->data, b->size);
 	push_pointer_stack(&vm, object);
@@ -336,7 +368,7 @@ op_concat_strings: {
 	NEXT();
 
 op_print_string: {
-	HeapObject *object = pop_pointer_stack(&vm);
+	heap_object_t *object = pop_pointer_stack(&vm);
 	size_t i;
 	for (i = 0; i < object->size; i++)
 		putchar(((char *)object->data)[i]);
